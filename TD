@@ -122,14 +122,14 @@ for i in $(seq 1 100); do
 }
 
 
-function update_bot() {
+function update() {
   sudo git pull
   sudo git fetch --all
   sudo git reset --hard origin/master
   sudo git pull origin master
   sudo chmod +x TD
-	sudo rm -rf telegram-bot
-	tdbot
+  sudo rm -rf telegram-bot
+  tdbot
 }
 
 
@@ -161,7 +161,7 @@ td-'$1' = {
 	use_secret_chats = false;
 	use_chat_info_db = true;
 	use_message_db = true;
-  logname = "log.txt";
+  	logname = "log.txt";
 	verbosity = 0;
 	lua_script = "td.lua";
 };' >> $cfg
