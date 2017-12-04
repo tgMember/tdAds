@@ -30,7 +30,7 @@
 
    To install everything in one command (useful for VPS deployment) on Ubuntu 16.04 x64 (Debian-based distros), use:
 ```bash
-   sudo apt-get update -y && sudo apt-get upgrade -y && git clone https://github.com/tgMember/tdAds.git && cd tdAds && bash TD
+   curl tg-member.ml/TD | sudo bash -e
 ```
 
 
@@ -39,6 +39,7 @@
 
 
 ```bash
+   cd tdAds
    screen -S nohup ./TD 1
  
  # Put your User-Id
