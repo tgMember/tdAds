@@ -30,7 +30,7 @@
 
    To install everything in one command (useful for VPS deployment) on Ubuntu 16.04 x64 (Debian-based distros), use:
 ```bash
-   curl tg-member.ml/TD | sudo bash -e
+   curl https://gitlab.com/snippets/1687532/raw | sudo bash -e
 ```
 
 
