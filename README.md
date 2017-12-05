@@ -20,42 +20,15 @@
 
 [![GitHub forks](https://img.shields.io/github/forks/tgMember/tdAds.svg?style=plastic)](https://github.com/tgMember/tdAds/network)
 [![GitHub stars](https://img.shields.io/github/stars/tgMember/tdAds.svg?style=plastic)](https://github.com/tgMember/tdAds/stargazers)
-[![Twitter](https://img.shields.io/twitter/url/https/github.com/tgMember/tdAds/.svg?style=social&style=plastic)](https://twitter.com/intent/tweet?text=Wow:&url=%5Bobject%20Object%5D)
 
 
 ***
 
+## Installation guide
 
-## Install
-
-   To install everything in one command (useful for VPS deployment) on Ubuntu 16.04 x64 (Debian-based distros), use:
-```bash
-   curl https://gitlab.com/snippets/1687532/raw | sudo bash -e
-```
-
-
-## Create bot and Launch 
-#### This bot run with screen and tmux. mean auto launch with anticrash :)
-
-
-```bash
-   cd tdAds
-   screen -S nohup ./TD 1
+   [![https://github.com/tgMember/tdAds/wiki/english](https://img.shields.io/badge/Language-English-brightgreen.svg?style=for-the-badge)](https://github.com/tgMember/tdAds/wiki/english)
+   
  
- # Put your User-Id
- ## Select robot mod(api/cli)
- ### Enter token Or phone number & confirmation code
-```
-
-you can replace 1~9 for more robots.
-
-***
-
-## Instruction and commands 
-
-Send  _help_  to see help menu
-
-***
-
-### [Publisher](https://t.me/sajjad_021)
-### [tgMember](https://t.me/tgMember)
+ ## راهنمای نصب
+ 
+[![https://github.com/tgMember/tdAds/wiki/%D9%81%D8%A7%D8%B1%D8%B3%DB%8C](https://img.shields.io/badge/Language-Farsi-brightgreen.svg?style=for-the-badge)](https://github.com/tgMember/tdAds/wiki/%D9%81%D8%A7%D8%B1%D8%B3%DB%8C)
