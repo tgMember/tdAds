@@ -76,7 +76,7 @@ function botmod() {
  echo -e "\033[38;5;208mSelect your Robot Mod Configuration\033[1;208m"
     read -p "API [A/a] - CLI [C/c]"
   if [ "$REPLY" == "A" ] || [ "$REPLY" == "a" ]; then
-			loginapi $1
+	loginapi $1
     elif [ "$REPLY" == "C" ] || [ "$REPLY" == "c" ]; then
     	loginbot $1
   fi
@@ -99,9 +99,9 @@ COUNTER=0
   while [ $COUNTER -lt 9 ]; do
     sleep 1
 	let COUNTER=COUNTER+1
-       	tmux kill-session -t td-$1
-		tmux new-session -d -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
-        tmux detach -s td-$1
+       	sudo tmux kill-session -t td-$1
+		sudo tmux new-session -d -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
+        sudo tmux detach -s td-$1
 sleep 2	
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
   done
@@ -118,9 +118,9 @@ elif [ "$1" = "upgrade" ]; then
 elif [[ "$1" =~ ^[0-9]+$ ]] ; then
 runbt $1
   while true; do
-	tmux kill-session -t td-$1
-		tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
-        tmux detach -s td-$1
+	sudo tmux kill-session -t td-$1
+		sudo tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
+        sudo tmux detach -s td-$1
   done
 else
  autolaunch
