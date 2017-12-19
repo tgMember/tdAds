@@ -95,17 +95,19 @@ drbt=~/.telegram-bot/td-$1
 }
 
 autolaunch() {
+while true; do
 COUNTER=0
-  while [ $COUNTER -lt 9 ]; do
-    sleep 1
+while [ $COUNTER -lt 20 ]; do
 	let COUNTER=COUNTER+1
-       	sudo tmux kill-session -t td-$1
-		sudo tmux new-session -d -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
-        sudo tmux detach -s td-$1
-sleep 2	
+   		tmux kill-session -t td-$COUNTER &> .telegram-bot.log
+			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &> .telegram-bot.log
+     		tmux detach -s td-$COUNTER &> .telegram-bot.log
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
+sleep 1
   done
-printf "\n\e[38;0;0m"
+	printf "\e[38;0;0m"
+sleep 250
+done
 }
 
 if [ ! -d ~/.telegram-bot ]; then
@@ -118,9 +120,9 @@ elif [ "$1" = "upgrade" ]; then
 elif [[ "$1" =~ ^[0-9]+$ ]] ; then
 runbt $1
   while true; do
-	sudo tmux kill-session -t td-$1
-		sudo tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
-        sudo tmux detach -s td-$1
+	tmux kill-session -t td-$1
+		tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
+	tmux detach -s td-$1
   done
 else
  autolaunch
