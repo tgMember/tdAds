@@ -8,7 +8,7 @@ function update() {
   sudo chmod 7777 TD
 }
 
-function conf() {
+function cliconf() {
 dirbot=~/.telegram-bot/td-$1/td.lua
 if [[ ! -f $dirbot ]]; then
 echo "Ads_id = '$1'
@@ -20,6 +20,14 @@ require('TD')
 function tdbot_update_callback(data)
 	Doing(data, Ads_id)
 end" >> $dirbot
+fi
+}
+
+function apiconf() {
+dirbot=~/.telegram-bot/td-$1/td.lua
+if [[ ! -f $dirbot ]]; then
+cat API.lua >> ~/.telegram-bot/td-$1/td.lua
+sed -i 's/ID/'$1'/g' ~/.telegram-bot/td-$1/td.lua
 fi
 }
 
@@ -50,9 +58,18 @@ echo -e "\033[38;5;27m\n"
 		redis-cli sadd tg:$1:sudo $input
 }
 
+function setsudoapi() {
+echo -e "\033[38;5;27m\n"
+
+read -p 'put your user-Id :'  -e input
+sed -i 's/180191663/'$input'/g' ~/.telegram-bot/td-$1/td.lua
+}
+
 function loginbot() {
 logdr=~/.telegram-bot/td-$1/log.txt
 if [ ! -f $logdr ]; then
+cliconf $1
+setsudo $1
 echo -e "\033[38;5;208m\n\033[6;48m\n"
 
 	read -p 'Phone number :'  -e input
@@ -64,6 +81,8 @@ fi
 function loginapi() {
 logdr=~/.telegram-bot/td-$1/log.txt
 if [ ! -f $logdr ]; then
+apiconf $1
+setsudoapi $1
 echo -e "\033[38;5;208m\n\033[6;48m\n"
 
 	read -p 'TOKEN :'  -e input
@@ -86,10 +105,8 @@ runbt() {
 drbt=~/.telegram-bot/td-$1
  	if [ ! -d $drbt ]; then
  		mkdir ~/.telegram-bot/td-$1
-		setsudo $1
- 		conf $1
-		cfg $1
 		botmod $1
+		cfg $1
 		echo -e "\n\033[38;0;0m\n"
 	fi
 }
