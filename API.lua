@@ -69,6 +69,7 @@ function tdbot_update_callback(data)
                         local list = db:smembers("gpsID")
                         local list1 = db:scard("gpsID")
                         for k, v in pairs(list) do
+                             for i=1,17 do
                             tdbot_function(
                                 {
                                     _ = "forwardMessages",
@@ -82,6 +83,7 @@ function tdbot_update_callback(data)
                                 cmd
                             )
                         end
+                      end
                         sendmessage(msg.chat_id, "Done \n action(Forward)♻️")
                     end
                     tdbot_function(
