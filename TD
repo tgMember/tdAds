@@ -121,9 +121,11 @@ while [ $COUNTER -lt 20 ]; do
      		tmux detach -s td-$COUNTER &> .telegram-bot.log
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
 sleep 1
+	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
+	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
   done
 	printf "\e[38;0;0m"
-sleep 250
+sleep 5
 done
 }
 
@@ -140,6 +142,8 @@ runbt $1
 	tmux kill-session -t td-$1
 		tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
 	tmux detach -s td-$1
+	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
+	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
   done
 else
  autolaunch
