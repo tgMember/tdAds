@@ -111,18 +111,19 @@ drbt=~/.telegram-bot/td-$1
 autolaunch() {
 while true; do
 COUNTER=0
-while [ $COUNTER -lt 20 ]; do
+while [ $COUNTER -lt 9 ]; do
 	let COUNTER=COUNTER+1
    		tmux kill-session -t td-$COUNTER &> .telegram-bot.log
+		killall telegram-bot &> .telegram-bot.log
 			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &> .telegram-bot.log
      		tmux detach -s td-$COUNTER &> .telegram-bot.log
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
-sleep 1
+sleep 3
 	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
 	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
   done
 	printf "\e[38;0;0m"
-sleep 5
+sleep 1800
 done
 }
 
