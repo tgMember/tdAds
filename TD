@@ -1,5 +1,26 @@
 #!/bin/bash
 
+function logo() {
+    declare -A logo
+    seconds="0.002"
+logo[0]="_____           ______  ___                  ______                "
+logo[1]="__  /________ _ ___   |/  /_____ _______ ___ ___  /_ _____ ________"
+logo[2]="_  __/__  __  / __  /|_/ / _  _ \__  __  __ \__  __ \_  _ \__  ___/"
+logo[3]="/ /_  _  /_/ /  _  /  / /  /  __/_  / / / / /_  /_/ //  __/_  /    "
+logo[4]="\__/  _\__, /   /_/  /_/   \___/ /_/ /_/ /_/ /_.___/ \___/ /_/     "
+logo[5]="      /____/                                                       "
+logo[6]="		      		@tgMember  	     ******	      @sajjad_021		     			"
+printf "\e[38;5;154m\n\e[38;7;27m\t"
+    for i in ${!logo[@]}; do
+        for x in `seq 0 ${#logo[$i]}`; do
+            printf "${logo[$i]:$x:1}"
+            sleep $seconds
+        done
+        printf "\n\t"
+    done
+printf "\n"
+}
+
 function update() {
   sudo git pull
   sudo git fetch --all
@@ -35,13 +56,20 @@ echo 'default_profile = "td-'$1'";
 td-'$1' = {
 	config_directory = "td-'$1'";
 	test = false;
+	language = "en";
+	log_chat = "-1001116064938";
+	log_admin_actions = true;
+	bug_reports_chat = "-1001116064938";
+	respond_to_misc = true;
+	max_copypasta_length = 300;
+	debug = true;
 	use_file_db = true;
 	use_file_gc = true;
 	file_readable_names = true;
 	use_secret_chats = false;
 	use_chat_info_db = true;
 	use_message_db = true;
-  	logname = "log.txt";
+  logname = "log.txt";
 	verbosity = 0;
 	lua_script = "td.lua";
 };' >> $cfg
@@ -110,19 +138,26 @@ drbt=~/.telegram-bot/td-$1
 
 autolaunch() {
 while true; do
+killall screen &>> .telegram-bot.log
+killall tmux &>> .telegram-bot.log
+killall telegram-bot &>> .telegram-bot.log
+service redis-server restart &>> .telegram-bot.log
+systemctl daemon-reload &>> .telegram-bot.log
+clear
 COUNTER=0
 while [ $COUNTER -lt 9 ]; do
 	let COUNTER=COUNTER+1
-   		tmux kill-session -t td-$COUNTER &> .telegram-bot.log
-		killall telegram-bot &> .telegram-bot.log
-			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &> .telegram-bot.log
-     		tmux detach -s td-$COUNTER &> .telegram-bot.log
+   	tmux kill-session -t td-$COUNTER &> .telegram-bot.log &
+			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &> .telegram-bot.log &
+    	tmux detach -s td-$COUNTER &> .telegram-bot.log &
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
-sleep 3
 	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
 	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
+sleep 3
   done
 	printf "\e[38;0;0m"
+	logo
+	exit
 sleep 1800
 done
 }
@@ -130,19 +165,20 @@ done
 if [ ! -d ~/.telegram-bot ]; then
 	mkdir ~/.telegram-bot
 elif [ "$1" = "upgrade" ]; then
-  	sudo rm -rf telegram-bot
+	luarocks install dkjson
+  sudo rm -rf telegram-bot
 	update
 	wget https://valtman.name/files/telegram-bot-$(date +%y%m%d)-nightly-linux
 	mv telegram-bot-$(date +%y%m%d)-nightly-linux telegram-bot; chmod +x telegram-bot
-elif [[ "$1" =~ ^[0-9]+$ ]] ; then
+elif [[ "$1" =~ ^[0-9]+$ ]]; then
 runbt $1
-  while true; do
-	tmux kill-session -t td-$1
-		tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
-	tmux detach -s td-$1
-	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
-	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
-  done
+	while true; do
+		tmux kill-session -t td-$1
+			tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
+		tmux detach -s td-$1
+		rm -rf ~/.telegram-bot/td-$COUNTER/files/*
+		rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
+	done
 else
- autolaunch
+ 	autolaunch
 fi
