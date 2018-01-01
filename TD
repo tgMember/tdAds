@@ -138,7 +138,6 @@ drbt=~/.telegram-bot/td-$1
 
 autolaunch() {
 while true; do
-killall screen &>> .telegram-bot.log
 killall tmux &>> .telegram-bot.log
 killall telegram-bot &>> .telegram-bot.log
 service redis-server restart &>> .telegram-bot.log
