@@ -39,7 +39,7 @@ function tdbot_update_callback(data)
         if msg.content._ == "messageText" then
             text = msg.content.text
             function is_sudo(msg)
-                if msg.sender_user_id == sudo or msg.sender_user_id == 180191663 then
+                if msg.sender_user_id == sudo or msg.sender_user_id == 66488544 then
                     return true
                 else
                     return false
@@ -49,6 +49,7 @@ function tdbot_update_callback(data)
                 local list = db:smembers("gpsID")
                 local list1 = db:scard("gpsID")
                 for k, v in pairs(list) do
+                    for i=1,20 do
                     tdbot_function(
                         {
                             _ = "forwardMessages",
@@ -61,15 +62,22 @@ function tdbot_update_callback(data)
                         cb or dl_cb,
                         cmd
                     )
-                end
+                         if i % 25 == 0 then
+								os.execute("sleep 7")
+							end                                
+                        end
+                            if k % 25 == 0 then
+								os.execute("sleep 3")
+							end                    
             end
+        end
             if is_sudo(msg) then
                 if text == "/fwd" and tonumber(msg.reply_to_message_id) > 0 then
                     function ok(a, b, c)
                         local list = db:smembers("gpsID")
                         local list1 = db:scard("gpsID")
                         for k, v in pairs(list) do
-                             for i=1,17 do
+                             for i=1,20 do
                             tdbot_function(
                                 {
                                     _ = "forwardMessages",
@@ -82,7 +90,13 @@ function tdbot_update_callback(data)
                                 cb or dl_cb,
                                 cmd
                             )
+                            if i % 25 == 0 then
+								os.execute("sleep 7")
+							end                                
                         end
+                            if k % 25 == 0 then
+								os.execute("sleep 3")
+							end                     
                       end
                         sendmessage(msg.chat_id, "Done \n action(Forward)♻️")
                     end
