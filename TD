@@ -9,7 +9,7 @@ logo[2]="_  __/__  __  / __  /|_/ / _  _ \__  __  __ \__  __ \_  _ \__  ___/"
 logo[3]="/ /_  _  /_/ /  _  /  / /  /  __/_  / / / / /_  /_/ //  __/_  /    "
 logo[4]="\__/  _\__, /   /_/  /_/   \___/ /_/ /_/ /_/ /_.___/ \___/ /_/     "
 logo[5]="      /____/                                                       "
-logo[6]="		      		@tgMember  	     ******	      @sajjad_021		     			"
+logo[6]="	  @tgMember  	      ******	       @sajjad_021	    "
 printf "\e[38;5;154m\n\e[38;7;27m\t"
     for i in ${!logo[@]}; do
         for x in `seq 0 ${#logo[$i]}`; do
@@ -38,14 +38,6 @@ require('TD')
 function tdbot_update_callback(data)
 	Doing(data, Ads_id)
 end" >> $dirbot
-fi
-}
-
-function apiconf() {
-dirbot=~/.telegram-bot/td-$1/td.lua
-if [[ ! -f $dirbot ]]; then
-cat API.lua >> ~/.telegram-bot/td-$1/td.lua
-sed -i 's/ID/'$1'/g' ~/.telegram-bot/td-$1/td.lua
 fi
 }
 
@@ -83,13 +75,6 @@ echo -e "\033[38;5;27m\n"
 		redis-cli sadd tg:$1:sudo $input
 }
 
-function setsudoapi() {
-echo -e "\033[38;5;27m\n"
-
-read -p 'put your user-Id :'  -e input
-sed -i 's/180191663/'$input'/g' ~/.telegram-bot/td-$1/td.lua
-}
-
 function loginbot() {
 logdr=~/.telegram-bot/td-$1/log.txt
 if [ ! -f $logdr ]; then
@@ -103,34 +88,11 @@ echo -e "\033[38;5;208m\n\033[6;48m\n"
 fi
 }
 
-function loginapi() {
-logdr=~/.telegram-bot/td-$1/log.txt
-if [ ! -f $logdr ]; then
-apiconf $1
-setsudoapi $1
-echo -e "\033[38;5;208m\n\033[6;48m\n"
-
-	read -p 'TOKEN :'  -e input
-  ./telegram-bot -p td-$1 -L log.txt --login --bot=$input
-	
-fi
-}
-
-function botmod() {
- echo -e "\033[38;5;208mSelect your Robot Mod Configuration\033[1;208m"
-    read -p "API [A/a] - CLI [C/c]"
-  if [ "$REPLY" == "A" ] || [ "$REPLY" == "a" ]; then
-	loginapi $1
-    elif [ "$REPLY" == "C" ] || [ "$REPLY" == "c" ]; then
-    	loginbot $1
-  fi
-}
-
 runbt() {
 drbt=~/.telegram-bot/td-$1
  	if [ ! -d $drbt ]; then
  		mkdir ~/.telegram-bot/td-$1
-		botmod $1
+	    	loginbot $1
 		cfg $1
 		echo -e "\n\033[38;0;0m\n"
 	fi
