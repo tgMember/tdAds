@@ -33,7 +33,17 @@ function cliconf() {
 dirbot=~/.telegram-bot/td-$1/td.lua
 if [[ ! -f $dirbot ]]; then
 echo "Ads_id = '$1'
-serpent = require('serpent')
+require('TD')
+function tdbot_update_callback(data)
+	Doing(data, Ads_id)
+end" >> $dirbot
+fi
+}
+
+function apiconf() {
+dirbot=~/.telegram-bot/td-$1/td.lua
+if [[ ! -f $dirbot ]]; then
+echo "Ads_id = '$1'
 require('TD')
 function tdbot_update_callback(data)
 	Doing(data, Ads_id)
@@ -61,7 +71,7 @@ td-'$1' = {
 	use_secret_chats = false;
 	use_chat_info_db = true;
 	use_message_db = true;
-  logname = "log.txt";
+  	logname = "log.txt";
 	verbosity = 0;
 	lua_script = "td.lua";
 };' >> $cfg
@@ -71,64 +81,77 @@ fi
 function setsudo() {
 echo -e "\033[38;5;27m\n"
 
- read -p 'put your user-Id :'  -e input
-		redis-cli sadd tg:$1:sudo $input
+	read -p 'put your user-Id :'  -e input
+	redis-cli sadd tg:$1:sudo $input
 }
 
 function loginbot() {
 logdr=~/.telegram-bot/td-$1/log.txt
 if [ ! -f $logdr ]; then
 cliconf $1
-setsudo $1
 echo -e "\033[38;5;208m\n\033[6;48m\n"
 
 	read -p 'Phone number :'  -e input
-  ./telegram-bot -p td-$1 -L log.txt --login --phone=$input
-	
+	./telegram-bot -d -c ~/.telegram-bot/td-$1/config --login --phone=$input
 fi
+}
+
+function loginapi() {
+logdr=~/.telegram-bot/td-$1/log.txt
+if [ ! -f $logdr ]; then
+apiconf $1
+echo -e "\033[38;5;208m\n\033[6;48m\n"
+
+	read -p 'TOKEN :'  -e input
+	./telegram-bot -d -c ~/.telegram-bot/td-$1/config --login --bot=$input
+fi
+}
+
+function botmod() {
+ echo -e "\033[38;5;208mSelect your Robot Mod Configuration\033[1;208m"
+    read -p "API [A/a] - CLI [C/c]"
+  if [ "$REPLY" == "A" ] || [ "$REPLY" == "a" ]; then
+	loginapi $1
+    elif [ "$REPLY" == "C" ] || [ "$REPLY" == "c" ]; then
+    	loginbot $1
+  fi
 }
 
 runbt() {
 drbt=~/.telegram-bot/td-$1
  	if [ ! -d $drbt ]; then
  		mkdir ~/.telegram-bot/td-$1
-	    	loginbot $1
+		setsudo $1
 		cfg $1
+		botmod $1
 		echo -e "\n\033[38;0;0m\n"
 	fi
 }
 
 autolaunch() {
 while true; do
-killall tmux &>> .telegram-bot.log
-killall telegram-bot &>> .telegram-bot.log
-service redis-server restart &>> .telegram-bot.log
-systemctl daemon-reload &>> .telegram-bot.log
-clear
 COUNTER=0
-while [ $COUNTER -lt 9 ]; do
+while [ $COUNTER -lt 19 ]; do
 	let COUNTER=COUNTER+1
-   	tmux kill-session -t td-$COUNTER &> .telegram-bot.log &
-			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &> .telegram-bot.log &
-    	tmux detach -s td-$COUNTER &> .telegram-bot.log &
+   	tmux kill-session -t td-$COUNTER &>/dev/null
+			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &>/dev/null
+    	tmux detach -s td-$COUNTER &>/dev/null
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
 	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
 	rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
-sleep 3
+sleep 1
   done
 	printf "\e[38;0;0m"
 	logo
-	exit
-sleep 1800
+sleep 180
 done
 }
 
 if [ ! -d ~/.telegram-bot ]; then
 	mkdir ~/.telegram-bot
 elif [ "$1" = "upgrade" ]; then
-	luarocks install dkjson
-  sudo rm -rf telegram-bot
 	update
+	rm -rf telegram-bot
 	wget https://valtman.name/files/telegram-bot-$(date +%y%m%d)-nightly-linux
 	mv telegram-bot-$(date +%y%m%d)-nightly-linux telegram-bot; chmod +x telegram-bot
 elif [[ "$1" =~ ^[0-9]+$ ]]; then
