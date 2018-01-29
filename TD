@@ -155,7 +155,7 @@ elif [[ "$1" =~ ^[0-9]+$ ]]; then
 runbt $1
 	while true; do
 		tmux kill-session -t td-$1
-			tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config"
+			tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config | grep -v '{'"
 		tmux detach -s td-$1
 		rm -rf ~/.telegram-bot/td-$COUNTER/files/*
 		rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
