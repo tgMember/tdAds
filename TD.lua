@@ -833,8 +833,8 @@ function Doing(data, Ads_id)
             end
         end
 
-        if string.find(os.date("%X"), "4:30:0%d") and not redis:get("tg:" .. Ads_id .. ":wait_time") then
-            os.execute("sleep 10800")
+        if string.find(os.date("%X"), "4:00:0%d") and not redis:get("tg:" .. Ads_id .. ":wait_time") then
+            os.execute("sleep 7300")
 
             redis:setex("tg:" .. Ads_id .. "wait_time", 10, true)
         end
