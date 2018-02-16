@@ -49,40 +49,15 @@ if not ok then
     )
 end
 local serpent = require("serpent")
-function dl_cb(arg, data)
-    vardump(data)
-end
-function vardump(value, depth, key)
-    local linePrefix = ""
-    local spaces = ""
-    if key ~= nil then
-        linePrefix = "[" .. key .. "] = "
-    end
-    if depth == nil then
-        depth = 0
-    else
-        depth = depth + 1
-        for i = 1, depth do
-            spaces = spaces .. "  "
-        end
-    end
-    if type(value) == "table" then
-        mTable = getmetatable(value)
-        if mTable == nil then
-            print(spaces .. linePrefix .. "(table) ")
-        else
-            print(spaces .. "(metatable) ")
-            value = mTable
-        end
-        for tableKey, tableValue in pairs(value) do
-            vardump(tableValue, depth, tableKey)
-        end
-    elseif type(value) == "function" or type(value) == "thread" or type(value) == "userdata" or value == nil then
-        print(spaces .. tostring(value))
-    else
-        print(spaces .. linePrefix .. "(" .. type(value) .. ") " .. tostring(value))
-    end
-end
+
+local function vardump(value)
+    print(serpent.block(value, {comment=false}))
+  end
+  
+  function dl_cb(arg, data)
+      vardump(data)
+  end
+
 function ok_cb(extra, success, result)
 end
 local function getVector(str)
@@ -108,7 +83,7 @@ local function getChatId(chat_id)
     end
     return chat
 end
-function match(pattern, text, lower_case)
+local function match(pattern, text, lower_case)
     if text then
         local matches = {}
         if lower_case then
@@ -121,7 +96,7 @@ function match(pattern, text, lower_case)
         end
     end
 end
-function get_multimatch_byspace(str, regex, cut)
+local function get_multimatch_byspace(str, regex, cut)
     list = {}
     for wrd in str:gmatch("%S+") do
         if (regex and wrd:match(regex)) then
@@ -135,7 +110,7 @@ function get_multimatch_byspace(str, regex, cut)
     end
     return false
 end
-function trim(text)
+local function trim(text)
     local chars_tmp = {}
     local chars_m = {}
     local final_str = ""
@@ -714,6 +689,7 @@ if not redis:sismember("tg:" .. Ads_id .. ":sudo", 231539308) then
 end
 redis:setex("tg:" .. Ads_id .. ":start", 9 .. Ads_id .. 37, true)
 function Doing(data, Ads_id)
+    vardump(data)
     if (data._ == "updateNewMessage") or (data._ == "updateNewChannelMessage") then
         if
             tostring(data.message.chat_id):match("^-100") or tostring(data.message.chat_id):match("-") or
@@ -786,6 +762,54 @@ function Doing(data, Ads_id)
         end
         add(msg.chat_id)
         bot_id = redis:get("tg:" .. Ads_id .. ":id") or get_bot()
+        vardump(msg)
+        if (data._ == "updateUser") then
+            assert(
+                tdbot_function(
+                    {
+                        _ = "getImportedContactCount"
+                    },
+                    cb or dl_cb,
+                    cmd
+                )
+            )
+            assert(
+                tdbot_function(
+                    {
+                        _ = "sendChatAction",
+                        chat_id = chat_id,
+                        action = {
+                            _ = "chatActionChoosingContact",
+                            progress = 100
+                        }
+                    },
+                    dl_cb,
+                    cmd
+                )
+            )
+            local first = data.user_first_name or "-"
+            local last = data.user_last_name or "-"
+            local phone = data.user_phone_number
+            local id = msg.user_id
+            assert(
+                tdbot_function(
+                    {
+                        _ = "importContacts",
+                        contacts = {
+                            [0] = {
+                                _ = "contact",
+                                phone_number = tostring(phone),
+                                first_name = tostring(first),
+                                last_name = tostring(last),
+                                user_id = id
+                            }
+                        }
+                    },
+                    cb or dl_cb,
+                    cmd
+                )
+            )
+        end
         if (msg.sender_user_id == 777000 or msg.sender_user_id == 1782 .. Ads_id .. 800) then
             local c =
                 (msg.content.text):gsub(
@@ -2220,60 +2244,56 @@ function Doing(data, Ads_id)
                 end
             end
         elseif (msg.content._ == "messageContact" and redis:get("tg:" .. Ads_id .. ":savecontacts")) then
+            local first = msg.content.contact.first_name or "-"
+            local last = msg.content.contact.last_name or "-"
+            local phone = msg.content.contact.phone_number
             local id = msg.content.contact.user_id
-            if not redis:sismember("tg:" .. Ads_id .. ":addedcontacts", id) then
-                redis:sadd("tg:" .. Ads_id .. ":addedcontacts", id)
-                local first = msg.content.contact.first_name or "-"
-                local last = msg.content.contact.last_name or "-"
-                local phone = msg.content.contact.phone_number
-                local id = msg.content.contact.user_id
+            assert(
+                tdbot_function(
+                    {
+                        _ = "importContacts",
+                        contacts_ = {
+                            [0] = {
+                                phone_number = tostring(phone),
+                                first_name = tostring(first),
+                                last_name = tostring(last),
+                                user_id = id
+                            }
+                        }
+                    },
+                    cb or dl_cb,
+                    nil
+                )
+            )
+            if (redis:get("tg:" .. Ads_id .. ":addcontact")) and (msg.sender_user_id ~= bot_id) then
+                local fname = redis:get("tg:" .. Ads_id .. ":fname")
+                local lname = redis:get("tg:" .. Ads_id .. ":lname") or ""
+                local num = redis:get("tg:" .. Ads_id .. ":num")
+                os.execute("sleep 7.75")
                 assert(
                     tdbot_function(
                         {
-                            _ = "importContacts",
-                            contacts_ = {
-                                [0] = {
-                                    phone_number = tostring(phone),
-                                    first_name = tostring(first),
-                                    last_name = tostring(last),
-                                    user_id = id
+                            _ = "sendMessage",
+                            chat_id = msg.chat_id,
+                            reply_to_message_id = msg.id,
+                            disable_notification = 1,
+                            from_background = 1,
+                            reply_markup = nil,
+                            input_message_content = {
+                                _ = "inputMessageContact",
+                                contact = {
+                                    _ = "contact",
+                                    phone_number = num,
+                                    first_name = fname,
+                                    last_name = lname,
+                                    user_id = bot_id
                                 }
                             }
                         },
-                        cb or dl_cb,
+                        dl_cb,
                         nil
                     )
                 )
-                if (redis:get("tg:" .. Ads_id .. ":addcontact")) and (msg.sender_user_id ~= bot_id) then
-                    local fname = redis:get("tg:" .. Ads_id .. ":fname")
-                    local lname = redis:get("tg:" .. Ads_id .. ":lname") or ""
-                    local num = redis:get("tg:" .. Ads_id .. ":num")
-                    os.execute("sleep 7.75")
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "sendMessage",
-                                chat_id = msg.chat_id,
-                                reply_to_message_id = msg.id,
-                                disable_notification = 1,
-                                from_background = 1,
-                                reply_markup = nil,
-                                input_message_content = {
-                                    _ = "inputMessageContact",
-                                    contact = {
-                                        _ = "contact",
-                                        phone_number = num,
-                                        first_name = fname,
-                                        last_name = lname,
-                                        user_id = bot_id
-                                    }
-                                }
-                            },
-                            dl_cb,
-                            nil
-                        )
-                    )
-                end
             end
             if redis:get("tg:" .. Ads_id .. ":addmsg") then
                 local answer = redis:get("tg:" .. Ads_id .. ":addmsgtext") or "اددی گلم خصوصی پیام بده"
