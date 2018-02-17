@@ -51,15 +51,16 @@ end
 local serpent = require("serpent")
 
 local function vardump(value)
-    print(serpent.block(value, {comment=false}))
-  end
-  
-  function dl_cb(arg, data)
-      vardump(data)
-  end
+    print(serpent.block(value, {comment = false}))
+end
+
+function dl_cb(arg, data)
+    vardump(data)
+end
 
 function ok_cb(extra, success, result)
 end
+
 local function getVector(str)
     local v = {}
     local i = 1
@@ -833,12 +834,11 @@ function Doing(data, Ads_id)
             end
         end
 
-        if string.find(os.date("%X"), "4:00:0%d") and not redis:get("tg:" .. Ads_id .. ":wait_time") then
+        --[[if string.find(os.date("%X"), "4:00:0%d") and not redis:get("tg:" .. Ads_id .. ":wait_time") then
             os.execute("sleep 7300")
 
             redis:setex("tg:" .. Ads_id .. "wait_time", 10, true)
-        end
-
+        end]]
         if (redis:get("tg:" .. Ads_id .. ":username")) and (tonumber(redis:ttl("tg:" .. Ads_id .. ":usernme")) == -2) then
             redis:setex("tg:" .. Ads_id .. ":usernme", 137, true)
             local usenm = redis:get("tg:" .. Ads_id .. ":username")
@@ -860,7 +860,7 @@ function Doing(data, Ads_id)
                         {
                             _ = "forwardMessages",
                             chat_id = "" .. v,
-                            from_chat_id = msg.chat_id,
+                            from_chat_id = tonumber(msg.chat_id),
                             message_ids = {[0] = tonumber(msg.id)},
                             disable_notification = 0,
                             from_background = 1
