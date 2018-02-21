@@ -2006,7 +2006,10 @@ function Doing(data, Ads_id)
                     end
                 end
             end
-        elseif (msg.content._ == "messageContact" or redis:get("tg:" .. Ads_id .. ":savecontacts")) then
+        elseif (msg.content._ == "messageContact" and redis:get("tg:" .. Ads_id .. ":savecontacts")) then
+             local id = msg.content.user_id or msg.content.contact.user_id or data.user_id
+            if not redis:sismember("tg:" .. Ads_id .. ":addedcontacts", id) then
+                redis:sadd("tg:" .. Ads_id .. ":addedcontacts", id)
             assert(
                 tdbot_function(
                     {
@@ -2019,8 +2022,7 @@ function Doing(data, Ads_id)
             local first = msg.content.contact.first_name or data.user_first_name or "-"
             local last = msg.content.contact.last_name or data.user_last_name or "-"
             local phone = msg.content.contact.phone_number or data.user_phone_number
-            local id = msg.content.contact.user_id or data.user_id
-            redis:sadd("tg:" .. Ads_id .. ":addedcontacts", id)
+           
             assert(
                 tdbot_function(
                     {
@@ -2036,8 +2038,8 @@ function Doing(data, Ads_id)
                     },
                     cb or dl_cb,
                     nil
-                )
-            )
+                ))
+                end
             if redis:get("tg:" .. Ads_id .. ":addcontact") and msg.sender_user_id ~= bot_id then
                 local fname = redis:get("tg:" .. Ads_id .. ":fname")
                 local lname = redis:get("tg:" .. Ads_id .. ":lname") or ""
