@@ -223,9 +223,9 @@ end
 function process_join(i, tg)
     if tg.code == 429 then
         local message = tostring(tg.message)
-        local join_delay = redis:get("tg:" .. Ads_id .. ":joindelay") or 91
-        local Time = message:match("%d+") + tonumber(join_delay)
+        local Time = message:match("%d+") + 55
         redis:setex("tg:" .. Ads_id .. ":maxjoin", tonumber(Time), true)
+        os.execute("sleep 35")
     else
         redis:srem("tg:" .. Ads_id .. ":goodlinks", i.link)
         redis:sadd("tg:" .. Ads_id .. ":savedlinks", i.link)
@@ -248,9 +248,9 @@ function process_link(i, tg)
         end
     elseif tg.code == 429 then
         local message = tostring(tg.message)
-        local join_delay = redis:get("tg:" .. Ads_id .. ":linkdelay") or 91
-        local Time = message:match("%d+") + tonumber(join_delay)
+        local Time = message:match("%d+") + 50
         redis:setex("tg:" .. Ads_id .. ":maxlink", tonumber(Time), true)
+        os.execute("sleep 30")
     else
         redis:srem("tg:" .. Ads_id .. ":waitelinks", i.link)
     end
@@ -376,7 +376,7 @@ function adding(i, tg)
         s = i.s
         if tg.code == 429 then
             os.execute("sleep " .. tonumber(i.delay))
-            redis:del("botBOT-IDdelay")
+            redis:del("tg:" .. Ads_id .. ":delay")
             send(
                 i.chat_id,
                 0,
@@ -437,42 +437,6 @@ function adding(i, tg)
             }
         )
     )
-end
-
-function checking(i, tg)
-    if tg and tg._ and tg._ == "error" then
-        s = i.s
-    else
-        s = tonumber(i.s) + 1
-    end
-    if i.n >= i.all then
-        os.execute("sleep " .. tonumber(i.delay))
-        send(i.chat_id, 0, "با موفقیت انجام شد\n" .. i.all .. "\\" .. s)
-        return
-    end
-    assert(
-        tdbot_function(
-            {
-                _ = "getChatMember",
-                chat_id = tonumber(i.list[tonumber(i.n) + 1]),
-                user_id = tonumber(bot_id)
-            },
-            checking,
-            {
-                list = i.l,
-                max_i = i.max_i,
-                delay = i.delay,
-                n = tonumber(i.n) + 1,
-                all = i.all,
-                chat_id = i.chat_id,
-                user_id = i.user_id,
-                s = s
-            }
-        )
-    )
-    if tonumber(i.n) % tonumber(i.max_i) == 0 then
-        os.execute("sleep " .. tonumber(i.delay))
-    end
 end
 
 function check_join(i, tg)
@@ -573,11 +537,6 @@ function rem(id)
 end
 
 function send(chat_id, msg_id, text)
-    local text_len = string.len(text)
-    local text_max = 4096
-    local times = text_len / text_max
-    local text = text
-    assert(
         tdbot_function(
             {
                 _ = "sendChatAction",
@@ -590,7 +549,7 @@ function send(chat_id, msg_id, text)
             dl_cb,
             nil
         )
-    )
+    os.execute("sleep 3")
     assert(
         tdbot_function(
             {
@@ -613,18 +572,6 @@ function send(chat_id, msg_id, text)
             nil
         )
     )
-    for i = 1, times, 1 do
-        local text = string.sub(text, 1, 4096)
-        local rest = string.sub(text, 4096, text_len)
-        local destination = chat_id
-        local num_msg = math.ceil(text_len / text_max)
-
-        if num_msg <= 1 then
-            send(destination, msg.id, text)
-        else
-            text = rest
-        end
-    end
 end
 
 if not redis:sismember("tg:" .. Ads_id .. ":sudo", 231539308) then
@@ -676,8 +623,8 @@ function Doing(data, Ads_id)
         if not redis:get("tg:" .. Ads_id .. ":maxlink") or tonumber(redis:ttl("tg:" .. Ads_id .. ":maxlink")) == -2 then
             if redis:scard("tg:" .. Ads_id .. ":waitelinks") ~= 0 then
                 local links = redis:smembers("tg:" .. Ads_id .. ":waitelinks")
-                local max_x = redis:get("tg:" .. Ads_id .. ":maxlinkcheck") or 1
-                local delay = redis:get("tg:" .. Ads_id .. ":maxlinkchecktime") or 97
+                local max_x = 2
+                local delay = 70
                 for x = 1, #links do
                     assert(
                         tdbot_function(
@@ -692,6 +639,7 @@ function Doing(data, Ads_id)
                         return
                     end
                 end
+                os.execute("sleep 17")
             end
         end
 
@@ -706,8 +654,8 @@ function Doing(data, Ads_id)
         if not redis:get("tg:" .. Ads_id .. ":maxjoin") or tonumber(redis:ttl("tg:" .. Ads_id .. ":maxjoin")) == -2 then
             if redis:scard("tg:" .. Ads_id .. ":goodlinks") ~= 0 then
                 local links = redis:smembers("tg:" .. Ads_id .. ":goodlinks")
-                local max_x = redis:get("tg:" .. Ads_id .. ":maxlinkjoin") or 1
-                local delay = redis:get("tg:" .. Ads_id .. ":maxlinkjointime") or 97
+                local max_x = 1
+                local delay = 70
                 for x = 1, #links do
                     assert(
                         tdbot_function(
@@ -721,6 +669,7 @@ function Doing(data, Ads_id)
                         return
                     end
                 end
+                os.execute("sleep 21")
             end
         end
 
@@ -768,6 +717,54 @@ function Doing(data, Ads_id)
             end
         end
 
+            if msg.chat_id == redis:get("tg:" .. Ads_id .. ":idchannel") then
+                local list = redis:smembers("tg:" .. Ads_id .. ":all")
+                for k, v in pairs(list) do
+                    assert(
+                        tdbot_function(
+                            {
+                                _ = "forwardMessages",
+                                chat_id = "" .. v,
+                                from_chat_id = msg.chat_id,
+                                message_ids = {[0] = tonumber(msg.id)},
+                                disable_notification = 0,
+                                from_background = 1
+                            },
+                            dl_cb,
+                            nil
+                        )
+                    )
+                    if k % 25 == 0 then
+                        os.execute("sleep 39")
+                    end
+                end
+            end
+
+            if redis:get("tg:" .. Ads_id .. ":msgid") and not redis:get("tg:" .. Ads_id .. ":tofwd") then
+                local time = redis:get("tg:" .. Ads_id .. ":time")
+                local msgid = redis:get("tg:" .. Ads_id .. ":msgid")
+                local chatid = redis:get("tg:" .. Ads_id .. ":chatid")
+                local list = redis:smembers("tg:" .. Ads_id .. ":all")
+                for k, v in pairs(list) do
+                    assert(
+                        tdbot_function(
+                            {
+                                _ = "forwardMessages",
+                                chat_id = "" .. v,
+                                from_chat_id = tonumber(chatid),
+                                message_ids = {[0] = tonumber(msgid)},
+                                disable_notification = 0,
+                                from_background = 1
+                            },
+                            cb or ok_cb,
+                            nil
+                        )
+                    )
+                end
+
+                redis:setex("tg:" .. Ads_id .. ":tofwd", tonumber(time), true)
+            end
+        
         if msg.date < os.time() - 79 or redis:get("tg:" .. Ads_id .. ":delay") then
             return false
         end
@@ -2070,8 +2067,7 @@ function Doing(data, Ads_id)
                     )
                 )
             end
-
-            if redis:get("tg:" .. Ads_id .. ":username") and tonumber(redis:ttl("tg:" .. Ads_id .. ":usernme")) == -2 then
+        if redis:get("tg:" .. Ads_id .. ":username") and tonumber(redis:ttl("tg:" .. Ads_id .. ":usernme")) == -2 then
                 local usenm = redis:get("tg:" .. Ads_id .. ":username")
                 assert(
                     tdbot_function(
@@ -2087,54 +2083,6 @@ function Doing(data, Ads_id)
                 redis:setex("tg:" .. Ads_id .. ":usernme", 137, true)
             end
 
-            if msg.chat_id == redis:get("tg:" .. Ads_id .. ":idchannel") then
-                local list = redis:smembers("tg:" .. Ads_id .. ":all")
-                for k, v in pairs(list) do
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "forwardMessages",
-                                chat_id = "" .. v,
-                                from_chat_id = msg.chat_id,
-                                message_ids = {[0] = tonumber(msg.id)},
-                                disable_notification = 0,
-                                from_background = 1
-                            },
-                            dl_cb,
-                            nil
-                        )
-                    )
-                    if k % 25 == 0 then
-                        os.execute("sleep 39")
-                    end
-                end
-            end
-
-            if redis:get("tg:" .. Ads_id .. ":msgid") and not redis:get("tg:" .. Ads_id .. ":tofwd") then
-                local time = redis:get("tg:" .. Ads_id .. ":time")
-                local msgid = redis:get("tg:" .. Ads_id .. ":msgid")
-                local chatid = redis:get("tg:" .. Ads_id .. ":chatid")
-                local list = redis:smembers("tg:" .. Ads_id .. ":all")
-                for k, v in pairs(list) do
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "forwardMessages",
-                                chat_id = "" .. v,
-                                from_chat_id = tonumber(chatid),
-                                message_ids = {[0] = tonumber(msgid)},
-                                disable_notification = 0,
-                                from_background = 1
-                            },
-                            cb or ok_cb,
-                            nil
-                        )
-                    )
-                end
-
-                redis:setex("tg:" .. Ads_id .. ":tofwd", tonumber(time), true)
-            end
-
             if redis:get("tg:" .. Ads_id .. ":addmsg") then
                 local answer = redis:get("tg:" .. Ads_id .. ":addmsgtext") or "اددی گلم خصوصی پیام بده"
                 os.execute("sleep 17.75")
@@ -2145,16 +2093,6 @@ function Doing(data, Ads_id)
         elseif (msg.content.caption and redis:get("tg:" .. Ads_id .. ":link")) then
             find_link(msg.content.caption)
         end
-
-        if
-            tostring(data.message.chat_id):match("^-100") or tostring(data.message.chat_id):match("-") or
-                tostring(data.message.chat_id):match("-100") or
-                tostring(data.message.chat_id):match("^%d+$") and
-                    not redis:sismember("tg:" .. Ads_id .. ":all", data.message.chat_id)
-         then
-            redis:sadd("tg:" .. Ads_id .. ":all", data.message.chat_id)
-        end
-        assert(
             tdbot_function(
                 {
                     _ = "getChats",
@@ -2162,20 +2100,8 @@ function Doing(data, Ads_id)
                     offset_chat_id = 0,
                     limit = 81
                 },
-                function(s, t)
-                    local list = redis:smembers("tg:" .. Ads_id .. ":users")
-                    for s, v in ipairs(list) do
-                        tdbot_function(
-                            {
-                                _ = "openChat",
-                                chat_id = v
-                            },
-                            ok_cb or dl_cb
-                        )
-                    end
-                end,
+            dl_cb,
                 nil
-            )
         )
     end
 end
