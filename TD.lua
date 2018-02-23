@@ -971,7 +971,6 @@ function Doing(data, Ads_id)
                     return send(msg.chat_id, msg.id, "کاربر مورد نظر مدیر نمی باشد.")
                 elseif text:match("^(تازه سازی)$") or text:match("^([Rr]efresh)$") then
                     get_bot()
-                    assert(
                         tdbot_function(
                             {
                                 _ = "searchContacts",
@@ -983,54 +982,6 @@ function Doing(data, Ads_id)
                             end,
                             nil
                         )
-                    )
-                    local list = {
-                        redis:smembers("tg:" .. Ads_id .. ":groups"),
-                        redis:smembers("tg:" .. Ads_id .. ":supergroups")
-                    }
-                    local l = {}
-                    for a, b in pairs(list) do
-                        for i, v in pairs(b) do
-                            table.insert(l, v)
-                        end
-                    end
-
-                    local max_i = redis:get("tg:" .. Ads_id .. ":sendmax") or 3
-                    local delay = redis:get("tg:" .. Ads_id .. ":senddelay") or 5
-                    if #l == 0 then
-                        return
-                    end
-
-                    local during = (#l / tonumber(max_i)) * tonumber(delay)
-                    send(
-                        msg.chat_id,
-                        msg.id,
-                        "اتمام عملیات در " ..
-                            during ..
-                                "ثانیه بعد\nراه اندازی مجدد ربات در " ..
-                                    redis:ttl("tg:" .. Ads_id .. ":start") .. "ثانیه اینده"
-                    )
-                    redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
-                    assert(
-                        tdbot_function(
-                            {
-                                _ = "getChatMember",
-                                chat_id = tonumber(l[1]),
-                                user_id = tonumber(bot_id)
-                            },
-                            checking,
-                            {
-                                list = l,
-                                max_i = max_i,
-                                delay = delay,
-                                n = 1,
-                                all = #l,
-                                chat_id = msg.chat_id,
-                                user_id = matches,
-                                s = 0
-                            }
-                        )
-                    )
                     return reload(msg.chat_id, msg.id)
                 elseif text:match("^([Dd]el)$") or (text:match("^([Dd]el)$") and msg.reply_to_message_id ~= 0) then
                     assert(
