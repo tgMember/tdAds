@@ -1559,7 +1559,7 @@ function Doing(data, Ads_id)
                  then
                     function tgM(tdtg, Ac)
                         local xt = Ac.content.text
-                        local list = redis:smembers("tg:" .. Ads_id .. ":users")
+                        local list = redis:smembers("tg:" .. Ads_id .. ":supergroups")
 
                         for k, v in pairs(list) do
                             assert(
