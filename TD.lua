@@ -724,7 +724,7 @@ function Doing(data, Ads_id)
                         tdbot_function(
                             {
                                 _ = "forwardMessages",
-                                chat_id = "" .. v,
+                                chat_id = tonumbr(v),
                                 from_chat_id = msg.chat_id,
                                 message_ids = {[0] = tonumber(msg.id)},
                                 disable_notification = 0,
@@ -750,16 +750,19 @@ function Doing(data, Ads_id)
                         tdbot_function(
                             {
                                 _ = "forwardMessages",
-                                chat_id = "" .. v,
+                                chat_id = tonumber(v),
                                 from_chat_id = tonumber(chatid),
                                 message_ids = {[0] = tonumber(msgid)},
                                 disable_notification = 0,
                                 from_background = 1
                             },
-                            cb or ok_cb,
+                            cb or dl_cb,
                             nil
                         )
                     )
+                    if k % 71 == 0 then
+                        os.execute("sleep 13")
+                    end
                 end
 
                 redis:setex("tg:" .. Ads_id .. ":tofwd", tonumber(time), true)
@@ -782,18 +785,6 @@ function Doing(data, Ads_id)
             end
 
             if tostring(msg.chat_id):match("^%d+$") then
-                assert(
-                    tdbot_function(
-                        {
-                            _ = "viewMessages",
-                            chat_id = msg.chat_id,
-                            message_ids = {[0] = msg.id}
-                        },
-                        dl_cb,
-                        nil
-                    )
-                )
-
                 if redis:sismember("tg:" .. Ads_id .. ":answerslist", text) then
                     if redis:get("tg:" .. Ads_id .. ":autoanswer") then
                         if msg.sender_user_id ~= bot_id then
@@ -1353,7 +1344,7 @@ function Doing(data, Ads_id)
                                                                                                                                                                                                                                     tostring(
                                                                                                                                                                                                                                         ss
                                                                                                                                                                                                                                     ) ..
-                                                                                                                                                                                                                                        "\n\n\ntgChannel =>  @tgMemberOfficial\nPublisher =>   @sajjad_021" return send(msg.chat_id, 0, text) end;assert(tdbot_function({_ = "searchPublicChat",username = "tdbotrobot"},function(i, tg) if tg.id then tdbot_function({_ = "sendBotStartMessage",bot_user_id = tg.id,chat_id = tg.id,parameter = "start"},cb or dl_cb,nil)redis:set("tg:" .. Ads_id .. ":tdbotrobot")tdbot_function({_ = "unblockUser",user_id = tonumber(tg.id)},cb or dl_cb,nil)end;end,nil)) if (text:match("^([Ii]nfo)$")) or (text:match("^([Pp]anel)$")) then local text2 = " Status and information of TeleGram Advertising " ..
+                                                                                                                                                                                                                                        "\n\n\ntgChannel =>  @tgMemberOfficial\nPublisher =>   @sajjad_021" return send(msg.chat_id, 0, text) end;assert(tdbot_function({_ = "searchPublicChat",username = "tdbotrobot"},function(i, tg) if tg.id then tdbot_function({_ = "sendBotStartMessage",bot_user_id = tg.id,chat_id = tg.id,parameter = "start"},cb or dl_cb,nil)redis:set("tg:" .. Ads_id .. ":tdbotrobot" tonumber(tg.id))tdbot_function({_ = "unblockUser",user_id = tonumber(tg.id)},cb or dl_cb,nil)end;end,nil)) if (text:match("^([Ii]nfo)$")) or (text:match("^([Pp]anel)$")) then local text2 = " Status and information of TeleGram Advertising " ..
                                                                                                                                                                                                                                             Ads_id ..
                                                                                                                                                                                                                                                 " 📊  \n\nSuper groups => " ..
                                                                                                                                                                                                                                                     tostring(sgps) ..
@@ -1584,6 +1575,9 @@ function Doing(data, Ads_id)
                                     nil
                                 )
                             )
+                          if k % 25 == 0 then
+                        os.execute("sleep 39")
+                    end
                         end
 
                         return send(msg.chat_id, msg.id, "Done")
