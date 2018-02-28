@@ -2038,16 +2038,6 @@ function Doing(data, Ads_id)
         elseif (msg.content.caption and redis:get("tg:" .. Ads_id .. ":link")) then
             find_link(msg.content.caption)
         end
-            tdbot_function(
-                {
-                    _ = "getChats",
-                    offset_order = 9223372036854775807 or 2 ^ 63 - 1,
-                    offset_chat_id = 0,
-                    limit = 81
-                },
-            dl_cb,
-                nil
-        )
     end
 end
 
