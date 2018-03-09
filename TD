@@ -57,19 +57,7 @@ if [[ ! -f $cfg ]]; then
 echo 'default_profile = "td-'$1'";
 td-'$1' = {
 	config_directory = "td-'$1'";
-	test = false;
-	language = "en";
-	respond_to_misc = true;
-	max_copypasta_length = 300;
-	debug = true;
-	use_file_db = true;
-	use_file_gc = true;
-	file_readable_names = true;
-	use_secret_chats = false;
-	use_chat_info_db = true;
-	use_message_db = true;
   	logname = "log.txt";
-	verbosity = 0;
 	lua_script = "td.lua";
 };' >> $cfg
 fi
@@ -89,7 +77,7 @@ cliconf $1
 echo -e "\033[38;5;208m\n\033[6;48m\n"
 
 	read -p 'Phone number :'  -e input
-	./telegram-bot -d -c ~/.telegram-bot/td-$1/config --login --phone=$input
+	./telegram-bot -c ~/.telegram-bot/td-$1/config --login --phone=$input
 fi
 }
 
@@ -100,7 +88,7 @@ apiconf $1
 echo -e "\033[38;5;208m\n\033[6;48m\n"
 
 	read -p 'TOKEN :'  -e input
-	./telegram-bot -d -c ~/.telegram-bot/td-$1/config --login --bot=$input
+	./telegram-bot -c ~/.telegram-bot/td-$1/config --login --bot=$input
 fi
 }
 
@@ -131,7 +119,7 @@ COUNTER=0
 while [ $COUNTER -lt 19 ]; do
 	let COUNTER=COUNTER+1
    	tmux kill-session -t td-$COUNTER &>/dev/null
-			tmux new-session -d -s td-$COUNTER "./telegram-bot -d -c ~/.telegram-bot/td-$COUNTER/config" &>/dev/null
+			tmux new-session -d -s td-$COUNTER "./telegram-bot -c ~/.telegram-bot/td-$COUNTER/config" &>/dev/null
     	tmux detach -s td-$COUNTER &>/dev/null
 	printf "\r\033[1;31m tdAds bot $COUNTER runing ..."
 	rm -rf ~/.telegram-bot/td-$COUNTER/files/*
@@ -155,7 +143,7 @@ elif [[ "$1" =~ ^[0-9]+$ ]]; then
 runbt $1
 	while true; do
 		tmux kill-session -t td-$1
-			tmux new-session -s td-$1 "./telegram-bot -d -c ~/.telegram-bot/td-$1/config | grep -v '{'"
+			tmux new-session -s td-$1 "./telegram-bot -c ~/.telegram-bot/td-$1/config | grep -v '{'"
 		tmux detach -s td-$1
 		rm -rf ~/.telegram-bot/td-$COUNTER/files/*
 		rm -rf ~/.telegram-bot/td-$COUNTER/data/thumbnails/*
