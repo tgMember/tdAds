@@ -137,8 +137,8 @@ if [ ! -d ~/.telegram-bot ]; then
 elif [ "$1" = "upgrade" ]; then
 	update
 	rm -rf telegram-bot
-	wget https://valtman.name/files/telegram-bot-180631-linux
-	mv telegram-bot-180631-linux telegram-bot; chmod +x telegram-bot
+	wget https://valtman.name/files/telegram-bot-180606-nightly-linux
+	mv telegram-bot-180606-nightly-linux telegram-bot; chmod +x telegram-bot
 elif [[ "$1" =~ ^[0-9]+$ ]]; then
 runbt $1
 	while true; do
