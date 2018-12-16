@@ -1,4 +1,4 @@
-# [_TeleGram Advertising_](https://t.me/tgMember)
+# [_TeleGram Advertising_](https://www.tgmember.com)
 
 #### _New Telegram_ [*(tdbot)*](https://valtman.name/telegram-bot)
 
@@ -15,8 +15,7 @@
 
 [![https://github.com/tgMember/tgAds](https://img.shields.io/badge/%F0%9F%92%AC_GitHub-tdAds-lightgrey.svg)](https://github.com/tgMember/tdAds)
 [![http://t.me/sajjad_021](https://img.shields.io/badge/Telegram-sajjad__021-blue.svg)](http://t.me/sajjad_021)
-   [![https://tg-member.ml](https://img.shields.io/badge/webpage-tgMember-ff69b4.svg)](https://tg-member.ml)
-[![https://t.me/tgMember](https://img.shields.io/badge/%F0%9F%92%AC_Telegram-tgMember-yelowgreen.svg)](https://t.me/tgMember)
+   [![https://www.tgmember.com](https://img.shields.io/badge/webpage-tgMember-ff69b4.svg)](https://www.tgmember.com)
 
 [![GitHub forks](https://img.shields.io/github/forks/tgMember/tdAds.svg?style=plastic)](https://github.com/tgMember/tdAds/network)
 [![GitHub stars](https://img.shields.io/github/stars/tgMember/tdAds.svg?style=plastic)](https://github.com/tgMember/tdAds/stargazers)
