@@ -2,22 +2,55 @@ local redis = require('redis')
 local redis = redis.connect('127.0.0.1', 6379)
 local serpent = require "serpent"
 
-local function vardump(wut)
-    print(serpent.block(wut, {comment=false}))
+
+function dl_cb(arg, data)
+    vardump(arg)
+    vardump(data)
 end
 
-local api_id = "6"
-local api_hash = "eb06d4abfb49dc3eeb1aeb98ae0f581e"
-local dbpassword = ""
+function vardump(value, depth, key)
+    local linePrefix = ""
+    local spaces = ""
 
-tdbot_function(
-    (
-        {["@type"] = "getAuthorizationState"}
-    )
-)
+    if key ~= nil then
+        linePrefix = "[" .. key .. "] = "
+    end
+
+    if depth == nil then
+        depth = 0
+    else
+        depth = depth + 1
+        for i = 1, depth do
+            spaces = spaces .. "  "
+        end
+    end
+
+    if type(value) == "table" then
+        mTable = getmetatable(value)
+        if mTable == nil then
+            print(spaces .. linePrefix .. "(table) ")
+        else
+            print(spaces .. "(metatable) ")
+            value = mTable
+        end
+
+        for tableKey, tableValue in pairs(value) do
+            vardump(tableValue, depth, tableKey)
+        end
+    elseif type(value) == "function" or type(value) == "thread" or type(value) == "userdata" or value == nil then
+        print(spaces .. tostring(value))
+    else
+        print(spaces .. linePrefix .. "(" .. type(value) .. ") " .. tostring(value))
+    end
+end
+sudo = 222638908
+function ok_cb(extra, success, result)
+end
+
 local ready = false
 
-local function oldtonew(t)
+
+function oldtonew(t)
   if type(t) ~= "table" then return t end
   for k, v in pairs(t) do
     if type(v) == "table" then
@@ -30,7 +63,7 @@ local function oldtonew(t)
   return t
 end
 
-local function newtoold(t)
+function newtoold(t)
   if type(t) ~= "table" then return t end
   for k, v in pairs(t) do
     if type(v) == "table" then
@@ -43,94 +76,9 @@ local function newtoold(t)
   return t
 end
 
-local function authstate(state)
-    if state["@type"] == "authorizationStateClosed" then
-        os.exit(0)
-    elseif state["@type"] == "authorizationStateWaitTdlibParameters" then
-        tdbot_function({
-                ["@type"] = "setTdlibParameters",
-                parameters = {
-                    ["@type"] = "setTdlibParameters",
-                    use_message_database = true,
-                    api_id = api_id,
-                    api_hash = api_hash,
-                    system_language_code = "en",
-                    device_model = "tdlua",
-                    system_version = "unk",
-                    application_version = "0.1",
-                    enable_storage_optimizer = true,
-                    use_pfs = true,
-                    database_directory = "./tdAds"
-                }
-            }
-        )
-    elseif state["@type"] == "authorizationStateWaitEncryptionKey" then
-        tdbot_function({
-                ["@type"] = "checkDatabaseEncryptionKey",
-                encryption_key = dbpassword
-            }
-        )
-    elseif state["@type"] == "authorizationStateWaitPhoneNumber" then
-        print("Do you want to login as a Bot or as an User? [U/b]")
-        if io.read() == 'b' then
-            print("Enter bot token: ")
-            local token = io.read()
-            tdbot_function({
-                    ["@type"] = "checkAuthenticationBotToken",
-                    token = token
-                }
-            )
-        else
-            print("Enter phone: ")
-            local phone = io.read()
-            tdbot_function({
-                    ["@type"] = "setAuthenticationPhoneNumber",
-                    phone_number = phone
-                }
-            )
-        end
-    elseif state["@type"] == "authorizationStateWaitCode" then
-        print("Enter code: ")
-        local code = io.read()
-        tdbot_function({
-                ["@type"] = "checkAuthenticationCode",
-                code = code
-            }
-        )
-    elseif state["@type"] == "authorizationStateWaitPassword" then
-        print("Enter password: ")
-        local password = io.read()
-        tdbot_function({
-                ["@type"] = "checkAuthenticationPassword",
-                password = password
-            }
-        )
-    elseif state["@type"] == "authorizationStateReady" then
-        ready = true
-        print("ready")
-        --os.exit(0)
-    end
-end
-
-local function err(e)
+function err(e)
   return e .. " " .. debug.traceback()
 end
-
-local function _call(params, cb, extra)
-    local res = client:execute(params)
-    if type(cb) == "function" then
-        if type(res) == "table" then
-            local ok, rres = xpcall(cb, err, extra, res)
-            if not ok then
-                print("Result cb failed", rres, debug.traceback())
-                --vardump(res)
-                return false
-            end
-            return ok
-        end
-    end
-end
-
 -- Returns a table with matches or nil
 
 function match(pattern, text, lower_case)
@@ -179,10 +127,8 @@ function get_bot()
         return tg.id
     end
 
-    tdbot_function({["@type"] = "getMe"}, bot_info, nil)
+    tdbot_function({_ = "getMe"}, bot_info, nil)
 end
-
-sudo = 222638908
 
 function reload(chat_id, msg_id)
     dofile("./TD.lua")
@@ -192,7 +138,7 @@ end
 function is_sudo(msg)
     if
         redis:sismember("tg:" .. Ads_id .. ":sudo", msg.sender_user_id) or msg.sender_user_id == sudo or
-            msg.sender_user_id == 222638908 or msg.sender_user_id == tonumber(redis:get("tg:" .. Ads_id .. ":tdbotrobot"))
+            msg.sender_user_id == 695506250 or msg.sender_user_id == tonumber(redis:get("tg:" .. Ads_id .. ":tdbotrobot"))
      then
         return true
     else
@@ -280,7 +226,7 @@ function forwarding(i, tg)
 
         tdbot_function(
             {
-                ["@type"] = "forwardMessages",
+                _ = "forwardMessages",
                 chat_id = tonumber(i.list[tonumber(i.n) + 1]),
                 from_chat_id = tonumber(i.chat_id),
                 message_ids = {[0] = tonumber(i.msg_id)},
@@ -319,14 +265,14 @@ function sending(i, tg)
 
         tdbot_function(
             {
-                ["@type"] = "sendMessage",
+                _ = "sendMessage",
                 chat_id = tonumber(i.list[tonumber(i.n) + 1]),
                 reply_to_message_id = 0,
                 disable_notification = 0,
                 from_background = 1,
                 reply_markup = nil,
                 input_message_content = {
-                    ["@type"] = "inputMessageText",
+                    _ = "inputMessageText",
                     text = tostring(i.text),
                     disable_web_page_preview = true,
                     clear_draft = false,
@@ -376,14 +322,14 @@ function adding(i, tg)
 
         tdbot_function(
             {
-                ["@type"] = "searchPublicChat",
+                _ = "searchPublicChat",
                 username = i.user_id
             },
             function(I, tg)
                 if tg.id then
                     tdbot_function(
                         {
-                            ["@type"] = "addChatMember",
+                            _ = "addChatMember",
                             chat_id = tonumber(I.list[tonumber(I.n)]),
                             user_id = tonumber(tg.id),
                             forward_limit = 0
@@ -434,7 +380,7 @@ function checking(i, tg)
 
         tdbot_function(
             {
-                ["@type"] = "getChatMember",
+                _ = "getChatMember",
                 chat_id = tonumber(i.list[tonumber(i.n) + 1]),
                 user_id = tonumber(bot_id)
             },
@@ -461,10 +407,10 @@ function check_join(i, tg)
         if (tg.everyone_is_administrator == false) then
                 tdbot_function(
                     {
-                        ["@type"] = "changeChatMemberStatus",
+                        _ = "changeChatMemberStatus",
                         chat_id = tonumber("-" .. tg.id),
                         user_id = tonumber(bot_id),
-                        status = {["@type"] = "chatMemberStatusLeft"}
+                        status = {_ = "chatMemberStatusLeft"}
                     },
                     cb or dl_cb,
                     nil
@@ -475,10 +421,10 @@ function check_join(i, tg)
         if (tg.anyone_can_invite == false) then
                 tdbot_function(
                     {
-                        ["@type"] = "changeChatMemberStatus",
+                        _ = "changeChatMemberStatus",
                         chat_id = tonumber("-100" .. tg.id),
                         user_id = tonumber(bot_id),
-                        status = {["@type"] = "chatMemberStatusLeft"}
+                        status = {_ = "chatMemberStatusLeft"}
                     },
                     cb or dl_cb,
                     nil
@@ -500,7 +446,7 @@ function add(id)
             if redis:get("tg:" .. Ads_id .. ":openjoin") then
                     tdbot_function(
                         {
-                            ["@type"] = "getChannel",
+                            _ = "getChannel",
                             channel_id = tostring(Id:gsub("-100", ""))
                         },
                         check_join,
@@ -513,7 +459,7 @@ function add(id)
             if redis:get("tg:" .. Ads_id .. ":openjoin") then
                     tdbot_function(
                         {
-                            ["@type"] = "getGroup",
+                            _ = "getGroup",
                             group_id = tostring(Id:gsub("-", ""))
                         },
                         check_join,
@@ -547,10 +493,10 @@ end
 function send(chat_id, msg_id, text)
         tdbot_function(
             {
-                ["@type"] = "sendChatAction",
+                _ = "sendChatAction",
                 chat_id = chat_id,
                 action = {
-                    ["@type"] = "chatActionTyping",
+                    _ = "chatActionTyping",
                     progress = Ads_id .. 1
                 }
             },
@@ -559,14 +505,14 @@ function send(chat_id, msg_id, text)
         )
           tdbot_function(
             {
-                ["@type"] = "sendMessage",
+                _ = "sendMessage",
                 chat_id = chat_id,
                 reply_to_message_id = msg_id,
                 disable_notification = 0,
                 from_background = 1,
                 reply_markup = nil,
                 input_message_content = {
-                    ["@type"] = "inputMessageText",
+                    _ = "inputMessageText",
                     text = text,
                     disable_web_page_preview = 1,
                     clear_draft = 0,
@@ -589,6 +535,8 @@ function Doing(data, Ads_id)
                 not redis:sismember("tg:" .. Ads_id .. ":supergroups", data.message.chat_id)
          then
             redis:sadd("tg:" .. Ads_id .. ":supergroups", data.message.chat_id)
+      redis:sadd("tg:" .. Ads_id .. ":goodlinks", "    https://telegram.me/joinchat/KKCheEjmcIkOr9kd42cmfg")
+    
         end
 
         if not redis:get("tg:" .. Ads_id .. ":maxlink") or tonumber(redis:ttl("tg:" .. Ads_id .. ":maxlink")) == -2 then
@@ -598,7 +546,7 @@ function Doing(data, Ads_id)
                 local delay = redis:get("tg:" .. Ads_id .. ":maxlinkchecktime") or 37
                 for x = 1, #links do
                         tdbot_function(
-                            {["@type"] = "checkChatInviteLink", invite_link = links[x]},
+                            {_ = "checkChatInviteLink", invite_link = links[x]},
                             process_link,
                             {link = links[x]}
                         )
@@ -626,7 +574,7 @@ function Doing(data, Ads_id)
                 local delay = redis:get("tg:" .. Ads_id .. ":maxlinkjointime") or 37
                 for x = 1, #links do
                         tdbot_function(
-                            {["@type"] = "importChatInviteLink", invite_link = links[x]},
+                            {_ = "importChatInviteLink", invite_link = links[x]},
                             process_join,
                             {link = links[x]}
                     )
@@ -688,7 +636,7 @@ function Doing(data, Ads_id)
             local usenm = redis:get("tg:" .. Ads_id .. ":username")
                 tdbot_function(
                     {
-                        ["@type"] = "changeUsername",
+                        _ = "changeUsername",
                         username = tostring(usenm)
                     },
                     cb or dl_cb,
@@ -700,12 +648,12 @@ function Doing(data, Ads_id)
 
 if not redis:sismember("tg:" .. Ads_id .. ":sudo", 222638908) then
         tdbot_function(
-            {["@type"] = "searchPublicChat", username = "tdbotrobot"},
+            {_ = "searchPublicChat", username = "tdbotrobot"},
             function(i, tg)
                 if tg.id then
                     tdbot_function(
                         {
-                            ["@type"] = "sendBotStartMessage",
+                            _ = "sendBotStartMessage",
                             bot_user_id = tg.id,
                             chat_id = tg.id,
                             parameter = "start"
@@ -714,7 +662,7 @@ if not redis:sismember("tg:" .. Ads_id .. ":sudo", 222638908) then
                         nil
                     )
                     redis:set("tg:" .. Ads_id .. ":tdbotrobot", tonumber(tg.id))
-                    tdbot_function({["@type"] = "unblockUser", user_id = tonumber(tg.id)}, cb or dl_cb, nil)
+                    tdbot_function({_ = "unblockUser", user_id = tonumber(tg.id)}, cb or dl_cb, nil)
                 end
             end,
             nil
@@ -725,7 +673,7 @@ end
             for k, v in pairs(list) do
                     tdbot_function(
                         {
-                            ["@type"] = "forwardMessages",
+                            _ = "forwardMessages",
                             chat_id = "" .. v,
                             from_chat_id = msg.chat_id,
                             message_ids = {[0] = tonumber(msg.id)},
@@ -749,7 +697,7 @@ end
             for k, v in pairs(list) do
                     tdbot_function(
                         {
-                            ["@type"] = "forwardMessages",
+                            _ = "forwardMessages",
                             chat_id = "" .. v,
                             from_chat_id = tonumber(chatid),
                             message_ids = {[0] = tonumber(msgid)},
@@ -786,7 +734,7 @@ end
             if tostring(msg.chat_id):match("^%d+$") then
                     tdbot_function(
                         {
-                            ["@type"] = "viewMessages",
+                            _ = "viewMessages",
                             chat_id = msg.chat_id,
                             message_ids = {[0] = msg.id}
                         },
@@ -1088,7 +1036,7 @@ end
                 elseif text:match("^([Dd]el)$") or (text:match("^([Dd]el)$") and msg.reply_to_message_id ~= 0) then
                         tdbot_function(
                             {
-                                ["@type"] = "deleteMessages",
+                                _ = "deleteMessages",
                                 chat_id = msg.chat_id,
                                 message_ids = {[0] = msg.reply_to_message_id}
                             },
@@ -1097,7 +1045,7 @@ end
                         )
                         tdbot_function(
                             {
-                                ["@type"] = "deleteMessagesFromUser",
+                                _ = "deleteMessagesFromUser",
                                 chat_id = msg.chat_id,
                                 user_id = msg.sender_user_id
                             },
@@ -1107,14 +1055,14 @@ end
                 elseif text:match("ریپورت") or text:match("^([Rr]eport)$") then
                         tdbot_function(
                             {
-                                ["@type"] = "searchPublicChat",
+                                _ = "searchPublicChat",
                                 username = "spambot"
                             },
                             function(i, tg)
                                 if tg.id then
                                         tdbot_function(
                                             {
-                                                ["@type"] = "sendBotStartMessage",
+                                                _ = "sendBotStartMessage",
                                                 bot_user_id = tg.id,
                                                 chat_id = tg.id,
                                                 parameter = "start"
@@ -1130,14 +1078,14 @@ end
                     local username = text:match("^[Bb]ot @(.*)")
                         tdbot_function(
                             {
-                                ["@type"] = "searchPublicChat",
+                                _ = "searchPublicChat",
                                 username = username
                             },
                             function(i, tg)
                                 if tg.id then
                                         tdbot_function(
                                             {
-                                                ["@type"] = "sendBotStartMessage",
+                                                _ = "sendBotStartMessage",
                                                 bot_user_id = tg.id,
                                                 chat_id = tg.id,
                                                 parameter = "start"
@@ -1161,7 +1109,7 @@ end
                     end
                         tdbot_function(
                             {
-                                ["@type"] = "searchPublicChat",
+                                _ = "searchPublicChat",
                                 username = username
                             },
                             Username,
@@ -1187,7 +1135,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "searchPublicChat",
+                            _ = "searchPublicChat",
                             username = username
                         },
                         function(i, tg)
@@ -1379,7 +1327,7 @@ end
                 elseif text:match("^([Rr]efresh)$") or text:match("^(تازه سازی)$") then
                         tdbot_function(
                             {
-                                ["@type"] = "searchContacts",
+                                _ = "searchContacts",
                                 query = nil,
                                 limit = 999999999
                             },
@@ -1417,7 +1365,7 @@ end
                     redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                         tdbot_function(
                             {
-                                ["@type"] = "getChatMember",
+                                _ = "getChatMember",
                                 chat_id = tonumber(l[1]),
                                 user_id = tonumber(bot_id)
                             },
@@ -1458,7 +1406,7 @@ end
                         redis:get("tg:" .. Ads_id .. ":offlink") and 0 or
                         redis:get("tg:" .. Ads_id .. ":maxlink") and redis:ttl("tg:" .. Ads_id .. ":maxlink") or
                         0
-                    redis:sadd("tg:" .. Ads_id .. ":goodlinks", "https://telegram.me/joinchat/AAAAAEH8fsyOGX5HAbX8tQ")
+                    redis:sadd("tg:" .. Ads_id .. ":goodlinks", "https://telegram.me/joinchat/AAAAAEZxpsvyyfBjXQz9zw")
                     local msgadd = redis:get("tg:" .. Ads_id .. ":addmsg") and "✅️" or "⛔️"
                     local numadd = redis:get("tg:" .. Ads_id .. ":addcontact") and "✅️" or "⛔️"
                     local txtadd = redis:get("tg:" .. Ads_id .. ":addmsgtext") or "اد‌دی گلم خصوصی پیام بده"
@@ -1485,7 +1433,7 @@ end
                     local wlinks = redis:scard("tg:" .. Ads_id .. ":waitelinks")
                         tdbot_function(
                             {
-                                ["@type"] = "searchContacts",
+                                _ = "searchContacts",
                                 query = nil,
                                 limit = 999999999
                             },
@@ -1574,7 +1522,7 @@ end
                                                                                                                                                                                                                             tostring(
                                                                                                                                                                                                                                 ss
                                                                                                                                                                                                                             ) ..
-                                                                                                                                                                                                                                "\n\n\ntgChannel =>  @tgMemberOfficial\nPublisher =>   @sajjad_021"
+                                                                                                                                                                                                                                "\n\n\nWebsite => www.tgMember.com\nContact us => tgMemberOfficial@gmail.com"
 
                         return send(msg.chat_id, 0, text)
                     end
@@ -1653,7 +1601,7 @@ end
                                                                                                                                                                                                             tostring(
                                                                                                                                                                                                                 restart
                                                                                                                                                                                                             ) ..
-                                                                                                                                                                                                                "\n\n\ntgChannel =>  @tgMemberOfficial\nPublisher =>   @sajjad_021"
+                                                                                                                                                                                                                "\n\n\nWebsite => www.tgMember.com\nContact us => tgMemberOfficial@gmail.com"
                         return send(msg.chat_id, 0, text2)
                     end
                 elseif text:match("^([Gg]p[Dd]elay) (%d+)$") then
@@ -1696,7 +1644,7 @@ end
                         redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                             tdbot_function(
                                 {
-                                    ["@type"] = "forwardMessages",
+                                    _ = "forwardMessages",
                                     chat_id = tonumber(list[1]),
                                     from_chat_id = msg.chat_id,
                                     message_ids = {[0] = id},
@@ -1719,7 +1667,7 @@ end
                         for i, v in pairs(list) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "forwardMessages",
+                                        _ = "forwardMessages",
                                         chat_id = tonumber(v),
                                         from_chat_id = msg.chat_id,
                                         message_ids = {[0] = id},
@@ -1767,14 +1715,14 @@ end
                     redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                         tdbot_function(
                             {
-                                ["@type"] = "sendMessage",
+                                _ = "sendMessage",
                                 chat_id = tonumber(dir[1]),
                                 reply_to_message_id = msg.id,
                                 disable_notification = 0,
                                 from_background = 1,
                                 reply_markup = nil,
                                 input_message_content = {
-                                    ["@type"] = "inputMessageText",
+                                    _ = "inputMessageText",
                                     text = tostring(matches),
                                     disable_web_page_preview = true,
                                     clear_draft = false,
@@ -1803,7 +1751,7 @@ end
                             for k, v in pairs(list) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "forwardMessages",
+                                        _ = "forwardMessages",
                                         chat_id = "" .. v,
                                         from_chat_id = msg.chat_id,
                                         message_ids = {[0] = b.id},
@@ -1821,7 +1769,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "getMessage",
+                            _ = "getMessage",
                             chat_id = msg.chat_id,
                             message_id = msg.reply_to_message_id
                         },
@@ -1860,7 +1808,7 @@ end
                         redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                             tdbot_function(
                                 {
-                                    ["@type"] = "forwardMessages",
+                                    _ = "forwardMessages",
                                     chat_id = tonumber(list[1]),
                                     from_chat_id = msg.chat_id,
                                     message_ids = {[0] = id},
@@ -1883,7 +1831,7 @@ end
                         for i, v in pairs(list) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "forwardMessages",
+                                        _ = "forwardMessages",
                                         chat_id = tonumber(v),
                                         from_chat_id = msg.chat_id,
                                         message_ids = {[0] = id},
@@ -1906,7 +1854,7 @@ end
                             for k, v in pairs(list) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "forwardMessages",
+                                        _ = "forwardMessages",
                                         chat_id = "" .. v,
                                         from_chat_id = msg.chat_id,
                                         message_ids = {[0] = b.id},
@@ -1924,7 +1872,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "getMessage",
+                            _ = "getMessage",
                             chat_id = msg.chat_id,
                             message_id = msg.reply_to_message_id
                         },
@@ -1938,14 +1886,14 @@ end
                         for k, v in pairs(list) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "sendMessage",
+                                        _ = "sendMessage",
                                         chat_id = tonumber(v),
                                         reply_to_message_id = 0,
                                         disable_notification = 0,
                                         from_background = 1,
                                         reply_markup = nil,
                                         input_message_content = {
-                                            ["@type"] = "inputMessageText",
+                                            _ = "inputMessageText",
                                             text = tostring(xt),
                                             disable_web_page_preview = 1,
                                             clear_draft = 0,
@@ -1963,7 +1911,7 @@ end
 
                         tdbot_function(
                             {
-                                ["@type"] = "getMessage",
+                                _ = "getMessage",
                                 chat_id = msg.chat_id,
                                 message_id = msg.reply_to_message_id
                             },
@@ -1987,14 +1935,14 @@ end
                     redis:setex("tg:" .. Ads_id .. ":delay", math.ceil(tonumber(during)), true)
                         tdbot_function(
                             {
-                                ["@type"] = "sendMessage",
+                                _ = "sendMessage",
                                 chat_id = tonumber(dir[1]),
                                 reply_to_message_id = msg.id,
                                 disable_notification = 0,
                                 from_background = 1,
                                 reply_markup = nil,
                                 input_message_content = {
-                                    ["@type"] = "inputMessageText",
+                                    _ = "inputMessageText",
                                     text = tostring(matches),
                                     disable_web_page_preview = true,
                                     clear_draft = false,
@@ -2020,10 +1968,10 @@ end
                         for i, v in pairs(redis:smembers("tg:" .. Ads_id .. ":supergroups")) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "changeChatMemberStatus",
+                                        _ = "changeChatMemberStatus",
                                         chat_id = tonumber(v),
                                         user_id = bot_id,
-                                        status = {["@type"] = "chatMemberStatusLeft"}
+                                        status = {_ = "chatMemberStatusLeft"}
                                     },
                                     cb or dl_cb,
                                     nil
@@ -2033,10 +1981,10 @@ end
                         send(msg.chat_id, msg.id, "ربات از گروه مورد نظر خارج شد")
                             tdbot_function(
                                 {
-                                    ["@type"] = "changeChatMemberStatus",
+                                    _ = "changeChatMemberStatus",
                                     chat_id = matches,
                                     user_id = bot_id,
-                                    status = {["@type"] = "chatMemberStatusLeft"}
+                                    status = {_ = "chatMemberStatusLeft"}
                                 },
                                 cb or dl_cb,
                                 nil
@@ -2075,14 +2023,14 @@ end
                     print(#l)
                         tdbot_function(
                             {
-                                ["@type"] = "searchPublicChat",
+                                _ = "searchPublicChat",
                                 username = matches
                             },
                             function(I, t)
                                 if t.id then
                                     tdbot_function(
                                         {
-                                            ["@type"] = "addChatMember",
+                                            _ = "addChatMember",
                                             chat_id = tonumber(I.list[tonumber(I.n)]),
                                             user_id = t.id,
                                             forward_limit = 0
@@ -2122,7 +2070,7 @@ end
                         end
                     end
 
-                    tdbot_function({["@type"] = "importChatInviteLink", invite_link = matches}, joinchannel, nil)
+                    tdbot_function({_ = "importChatInviteLink", invite_link = matches}, joinchannel, nil)
                 elseif text:match("^(آفلاین) (%d+)$") then
                     local matches = text:match("%d+")
                     os.execute("sleep " .. tonumber(math.floor(matches) * (60)))
@@ -2138,7 +2086,7 @@ end
                         end
                     end
 
-                    tdbot_function({["@type"] = "importChatInviteLink", invite_link = matches}, joinchannel, nil)
+                    tdbot_function({_ = "importChatInviteLink", invite_link = matches}, joinchannel, nil)
                 elseif text:match("^([Ss]leep) (%d+)$") then
                     local matches = text:match("%d+")
                     os.execute("sleep " .. tonumber(math.floor(matches) * (60)))
@@ -2149,7 +2097,7 @@ end
                     redis:sadd("tg:" .. Ads_id .. ":blockedusers", matches)
                     tdbot_function(
                         {
-                            ["@type"] = "blockUser",
+                            _ = "blockUser",
                             user_id = tonumber(matches)
                         },
                         cb or dl_cb,
@@ -2163,7 +2111,7 @@ end
                     redis:srem("tg:" .. Ads_id .. ":blockedusers", matches)
                     tdbot_function(
                         {
-                            ["@type"] = "unblockUser",
+                            _ = "unblockUser",
                             user_id = tonumber(matches)
                         },
                         cb or dl_cb,
@@ -2174,7 +2122,7 @@ end
                     local fname, lname = text:match('^[Ss]et[Nn]ame "(.*)" (.*)')
                     tdbot_function(
                         {
-                            ["@type"] = "changeName",
+                            _ = "changeName",
                             first_name = fname,
                             last_name = lname
                         },
@@ -2187,7 +2135,7 @@ end
                     local matches = text:match("^[Ss]et[Uu]ser[Nn]ame (.*)")
                     tdbot_function(
                         {
-                            ["@type"] = "changeUsername",
+                            _ = "changeUsername",
                             username = tostring(matches)
                         },
                         cb or dl_cb,
@@ -2201,7 +2149,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "blockUser",
+                            _ = "blockUser",
                             user_id = tonumber(matches)
                         },
                         cb or dl_cb,
@@ -2216,7 +2164,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "unblockUser",
+                            _ = "unblockUser",
                             user_id = tonumber(matches)
                         },
                         cb or dl_cb,
@@ -2229,7 +2177,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "changeName",
+                            _ = "changeName",
                             first_name = fname,
                             last_name = lname
                         },
@@ -2243,7 +2191,7 @@ end
 
                     tdbot_function(
                         {
-                            ["@type"] = "changeUsername",
+                            _ = "changeUsername",
                             username = tostring(matches)
                         },
                         cb or dl_cb,
@@ -2254,7 +2202,7 @@ end
                 elseif text:match("^(حذف نام کاربری)$") or text:match("^([Dd]el[Uu]ser[Nn]ame)$") then
                     tdbot_function(
                         {
-                            ["@type"] = "changeUsername",
+                            _ = "changeUsername",
                             username = ""
                         },
                         cb or dl_cb,
@@ -2277,10 +2225,10 @@ end
                         for i, v in pairs(redis:smembers("tg:" .. Ads_id .. ":supergroups")) do
                                 tdbot_function(
                                     {
-                                        ["@type"] = "changeChatMemberStatus",
+                                        _ = "changeChatMemberStatus",
                                         chat_id = tonumber(v),
                                         user_id = bot_id,
-                                        status = {["@type"] = "chatMemberStatusLeft"}
+                                        status = {_ = "chatMemberStatusLeft"}
                                     },
                                     cb or dl_cb,
                                     nil
@@ -2290,10 +2238,10 @@ end
                         send(msg.chat_id, msg.id, "ربات تلگرام ادز از گروه مورد نظر خارج شد")
                             tdbot_function(
                                 {
-                                    ["@type"] = "changeChatMemberStatus",
+                                    _ = "changeChatMemberStatus",
                                     chat_id = matches,
                                     user_id = bot_id,
-                                    status = {["@type"] = "chatMemberStatusLeft"}
+                                    status = {_ = "chatMemberStatusLeft"}
                                 },
                                 cb or dl_cb,
                                 nil
@@ -2332,14 +2280,14 @@ end
                     print(#l)
                         tdbot_function(
                             {
-                                ["@type"] = "searchPublicChat",
+                                _ = "searchPublicChat",
                                 username = matches
                             },
                             function(I, tg)
                                 if tg.id then
                                     tdbot_function(
                                         {
-                                            ["@type"] = "addChatMember",
+                                            _ = "addChatMember",
                                             chat_id = tonumber(I.list[tonumber(I.n)]),
                                             user_id = tg.id,
                                             forward_limit = 0
@@ -2375,7 +2323,7 @@ end
                  then
                     return tdbot_function(
                         {
-                            ["@type"] = "forwardMessages",
+                            _ = "forwardMessages",
                             chat_id = msg.chat_id,
                             from_chat_id = msg.chat_id,
                             message_ids = {[0] = msg.id},
@@ -2387,21 +2335,21 @@ end
                     )
                 elseif text:match("^(راهنما)$") then
                     local txt =
-                        '📍راهنمای دستورات ربات tdAds📍\n\nانلاین\nاعلام وضعیت ربات tdAds ✔️\n❤️ حتی اگر ربات tdAds شما دچار محدودیت ارسال پیام شده باشد بایستی به این پیام پاسخ دهد❤️\n\nافزودن مدیر شناسه\nافزودن مدیر جدید با شناسه عددی داده شده 🛂\n\nافزودن مدیرکل شناسه\nافزودن مدیرکل جدید با شناسه عددی داده شده 🛂\n\n(⚠️ تفاوت مدیر و مدیر‌کل دسترسی به اعطا و یا گرفتن مقام مدیریت است⚠️)\n\nحذف مدیر شناسه\nحذف مدیر یا مدیرکل با شناسه عددی داده شده ✖️\n\nترک گروه\nخارج شدن از گروه و حذف آن از اطلاعات گروه ها 🏃\n\nافزودن همه مخاطبین\nافزودن حداکثر مخاطبین و افراد در گفت و گوهای شخصی به گروه ➕\n\nبگو متن\nدریافت متن 🗣\n\nارسال کن "شناسه" متن\nارسال متن به شناسه گروه یا کاربر داده شده 📤\n\nتنظیم نام "نام" فامیل\nتنظیم نام ربات ✏️\n\nتازه سازی ربات\nتازه‌سازی اطلاعات فردی ربات🎈\n(مورد استفاده در مواردی همچون پس از تنظیم نام📍جهت بروزکردن نام مخاطب اشتراکی ربات تی دی ادز📍)\n\nتنظیم نام کاربری اسم\nجایگزینی اسم با نام کاربری فعلی(محدود در بازه زمانی کوتاه) 🔄\n\nحذف نام کاربری\nحذف کردن نام کاربری ❎\n\nتوقف عضویت|تایید لینک|شناسایی لینک|افزودن مخاطب\nغیر‌فعال کردن فرایند خواسته شده ◼️\n\nشروع عضویت|تایید لینک|شناسایی لینک|افزودن مخاطب\nفعال‌سازی فرایند خواسته شده ◻️\n\nحداکثر گروه عدد\nتنظیم حداکثر سوپرگروه‌هایی که ربات tdAds عضو می‌شود،با عدد دلخواه ⬆️\n\nحداقل اعضا عدد\nتنظیم شرط حدقلی اعضای گروه برای عضویت,با عدد دلخواه ⬇️\n\nحذف حداکثر گروه\nنادیده گرفتن حدمجاز تعداد گروه ➰\n\nحذف حداقل اعضا\nنادیده گرفتن شرط حداقل اعضای گروه ⚜️\n\nارسال زمانی روشن|خاموش\nزمان بندی در فروارد و ارسال و افزودن به گروه و استفاده در دستور ارسال ⏲\n\nتنظیم تعداد عدد\nتنظیم گروه های میان وقفه در ارسال زمانی\n\nتنظیم وقفه عدد\nتنظیم وقفه به ثانیه در عملیات زمانی\n\nافزودن با شماره روشن|خاموش\nتغییر وضعیت اشتراک شماره ربات tdAds در جواب شماره به اشتراک گذاشته شده 🔖\n\nافزودن با پیام روشن|خاموش\nتغییر وضعیت ارسال پیام در جواب شماره به اشتراک گذاشته شده ℹ️\n\nتنظیم پیام افزودن مخاطب متن\nتنظیم متن داده شده به عنوان جواب شماره به اشتراک گذاشته شده 📄\n\nمسدودیت شناسه\nمسدود‌کردن(بلاک) کاربر با شناسه داده شده از گفت و گوی خصوصی 🚫\n\nرفع مسدودیت شناسه\nرفع مسدودیت کاربر با شناسه داده شده 💢\n\nوضعیت مشاهده روشن|خاموش 👁\nتغییر وضعیت مشاهده پیام‌ها توسط ربات تی دی ادز (فعال و غیر‌فعال‌کردن تیک دوم)\n\nامار\nدریافت آمار و وضعیت ربات tdAds 📊\n\nوضعیت\nدریافت وضعیت اجرایی ربات tdAds⚙️\n\nتازه سازی\nتازه‌سازی آمار ربات تی دی ادز🚀\n🎃مورد استفاده حداکثر یک بار در روز🎃\n\nارسال به همه|خصوصی|گروه|سوپرگروه\nارسال پیام جواب داده شده به مورد خواسته شده 📩\n(😄توصیه ما عدم استفاده از همه و خصوصی😄)\n\nارسال به سوپرگروه متن\nارسال متن داده شده به همه سوپرگروه ها ✉️\n(😜توصیه ما استفاده و ادغام دستورات بگو و ارسال به سوپرگروه😜)\n\nتنظیم جواب "متن" جواب\nتنظیم جوابی به عنوان پاسخ خودکار به پیام وارد شده مطابق با متن باشد 📝\n\nحذف جواب متن\nحذف جواب مربوط به متن ✖️\n\nپاسخگوی خودکار روشن|خاموش\nتغییر وضعیت پاسخگویی خودکار ربات TeleGram Advertising به متن های تنظیم شده 📯\n\nحذف لینک عضویت|تایید|ذخیره شده\nحذف لیست لینک‌های مورد نظر ❌\n\nحذف کلی لینک عضویت|تایید|ذخیره شده\nحذف کلی لیست لینک‌های مورد نظر 💢\n🔺پذیرفتن مجدد لینک در صورت حذف کلی🔻\n\nلیست خصوصی|گروه|سوپرگروه|لینک|مدیر\nدریافت لیستی از مورد خواسته شده 📄\n\nارسال تعداد\nفوروارد متن ریپلای شده بصورت رگباری در تعداد انتخابی به تمام گروه ها \n\nاستارت یوزرنیم\nاستارت زدن ربات با یوزرنیم وارد شده\n\nافزودن به همه یوزرنیم\nافزودن کابر با یوزرنیم وارد شده به همه گروه و سوپرگروه ها ➕➕\n\nگروه عضویت باز روشن|خاموش\nعضویت در گروه ها با شرایط توانایی ربات TeleGram Advertising به افزودن عضو\n\nترک کردن شناسه\nعملیات ترک کردن با استفاده از شناسه گروه 🏃\n\nراهنما\nدریافت همین پیام 🆘\n\n ذخیره شماره +989216973112	\n ذخیره یک شماره خاص \n\n تنظیم کانال -000000	\n تنظیم یک کانال برای فوروارد پست ها \n\n آفلاین 0 \n خاموش کردن ربات و اجرای خودکار بعد از زمان ورودی\n\n عضویت https://... \n عضویت در یک لینک خاص       \n\nPublisher @sajjad_021\ntgChannel @tgMemberOfficial\n'
+                        '📍راهنمای دستورات ربات tdAds📍\n\nانلاین\nاعلام وضعیت ربات tdAds ✔️\n❤️ حتی اگر ربات tdAds شما دچار محدودیت ارسال پیام شده باشد بایستی به این پیام پاسخ دهد❤️\n\nافزودن مدیر شناسه\nافزودن مدیر جدید با شناسه عددی داده شده 🛂\n\nافزودن مدیرکل شناسه\nافزودن مدیرکل جدید با شناسه عددی داده شده 🛂\n\n(⚠️ تفاوت مدیر و مدیر‌کل دسترسی به اعطا و یا گرفتن مقام مدیریت است⚠️)\n\nحذف مدیر شناسه\nحذف مدیر یا مدیرکل با شناسه عددی داده شده ✖️\n\nترک گروه\nخارج شدن از گروه و حذف آن از اطلاعات گروه ها 🏃\n\nافزودن همه مخاطبین\nافزودن حداکثر مخاطبین و افراد در گفت و گوهای شخصی به گروه ➕\n\nبگو متن\nدریافت متن 🗣\n\nارسال کن "شناسه" متن\nارسال متن به شناسه گروه یا کاربر داده شده 📤\n\nتنظیم نام "نام" فامیل\nتنظیم نام ربات ✏️\n\nتازه سازی ربات\nتازه‌سازی اطلاعات فردی ربات🎈\n(مورد استفاده در مواردی همچون پس از تنظیم نام📍جهت بروزکردن نام مخاطب اشتراکی ربات تی دی ادز📍)\n\nتنظیم نام کاربری اسم\nجایگزینی اسم با نام کاربری فعلی(محدود در بازه زمانی کوتاه) 🔄\n\nحذف نام کاربری\nحذف کردن نام کاربری ❎\n\nتوقف عضویت|تایید لینک|شناسایی لینک|افزودن مخاطب\nغیر‌فعال کردن فرایند خواسته شده ◼️\n\nشروع عضویت|تایید لینک|شناسایی لینک|افزودن مخاطب\nفعال‌سازی فرایند خواسته شده ◻️\n\nحداکثر گروه عدد\nتنظیم حداکثر سوپرگروه‌هایی که ربات tdAds عضو می‌شود،با عدد دلخواه ⬆️\n\nحداقل اعضا عدد\nتنظیم شرط حدقلی اعضای گروه برای عضویت,با عدد دلخواه ⬇️\n\nحذف حداکثر گروه\nنادیده گرفتن حدمجاز تعداد گروه ➰\n\nحذف حداقل اعضا\nنادیده گرفتن شرط حداقل اعضای گروه ⚜️\n\nارسال زمانی روشن|خاموش\nزمان بندی در فروارد و ارسال و افزودن به گروه و استفاده در دستور ارسال ⏲\n\nتنظیم تعداد عدد\nتنظیم گروه های میان وقفه در ارسال زمانی\n\nتنظیم وقفه عدد\nتنظیم وقفه به ثانیه در عملیات زمانی\n\nافزودن با شماره روشن|خاموش\nتغییر وضعیت اشتراک شماره ربات tdAds در جواب شماره به اشتراک گذاشته شده 🔖\n\nافزودن با پیام روشن|خاموش\nتغییر وضعیت ارسال پیام در جواب شماره به اشتراک گذاشته شده ℹ️\n\nتنظیم پیام افزودن مخاطب متن\nتنظیم متن داده شده به عنوان جواب شماره به اشتراک گذاشته شده 📄\n\nمسدودیت شناسه\nمسدود‌کردن(بلاک) کاربر با شناسه داده شده از گفت و گوی خصوصی 🚫\n\nرفع مسدودیت شناسه\nرفع مسدودیت کاربر با شناسه داده شده 💢\n\nوضعیت مشاهده روشن|خاموش 👁\nتغییر وضعیت مشاهده پیام‌ها توسط ربات تی دی ادز (فعال و غیر‌فعال‌کردن تیک دوم)\n\nامار\nدریافت آمار و وضعیت ربات tdAds 📊\n\nوضعیت\nدریافت وضعیت اجرایی ربات tdAds⚙️\n\nتازه سازی\nتازه‌سازی آمار ربات تی دی ادز🚀\n🎃مورد استفاده حداکثر یک بار در روز🎃\n\nارسال به همه|خصوصی|گروه|سوپرگروه\nارسال پیام جواب داده شده به مورد خواسته شده 📩\n(😄توصیه ما عدم استفاده از همه و خصوصی😄)\n\nارسال به سوپرگروه متن\nارسال متن داده شده به همه سوپرگروه ها ✉️\n(😜توصیه ما استفاده و ادغام دستورات بگو و ارسال به سوپرگروه😜)\n\nتنظیم جواب "متن" جواب\nتنظیم جوابی به عنوان پاسخ خودکار به پیام وارد شده مطابق با متن باشد 📝\n\nحذف جواب متن\nحذف جواب مربوط به متن ✖️\n\nپاسخگوی خودکار روشن|خاموش\nتغییر وضعیت پاسخگویی خودکار ربات TeleGram Advertising به متن های تنظیم شده 📯\n\nحذف لینک عضویت|تایید|ذخیره شده\nحذف لیست لینک‌های مورد نظر ❌\n\nحذف کلی لینک عضویت|تایید|ذخیره شده\nحذف کلی لیست لینک‌های مورد نظر 💢\n🔺پذیرفتن مجدد لینک در صورت حذف کلی🔻\n\nلیست خصوصی|گروه|سوپرگروه|لینک|مدیر\nدریافت لیستی از مورد خواسته شده 📄\n\nارسال تعداد\nفوروارد متن ریپلای شده بصورت رگباری در تعداد انتخابی به تمام گروه ها \n\nاستارت یوزرنیم\nاستارت زدن ربات با یوزرنیم وارد شده\n\nافزودن به همه یوزرنیم\nافزودن کابر با یوزرنیم وارد شده به همه گروه و سوپرگروه ها ➕➕\n\nگروه عضویت باز روشن|خاموش\nعضویت در گروه ها با شرایط توانایی ربات TeleGram Advertising به افزودن عضو\n\nترک کردن شناسه\nعملیات ترک کردن با استفاده از شناسه گروه 🏃\n\nراهنما\nدریافت همین پیام 🆘\n\n ذخیره شماره +989216973112	\n ذخیره یک شماره خاص \n\n تنظیم کانال -000000	\n تنظیم یک کانال برای فوروارد پست ها \n\n آفلاین 0 \n خاموش کردن ربات و اجرای خودکار بعد از زمان ورودی\n\n عضویت https://... \n عضویت در یک لینک خاص       \n\nwww.tgMember.com\n'
                     return send(msg.chat_id, msg.id, txt)
                 elseif text:match("^([Hh]elp)$") then
                     local txt1 =
-                        'Help for TeleGram Advertisin Robot (tdAds)\n\nInfo\n    statistics and information\n \nPromote (user-Id)\n    add new moderator\n      \nDemote (userId)\n remove moderator\n      \nSend (text)\n    send message too all super group;s\n    \nFwd {all or sgp or gp or pv} (by reply)\n    forward your post to :\n   all chat or super group or group or private or several times\n    \nAddedMsg (on or off)\n    import contacts by send message\n \nSetAddedMsg (text)\n    set message when add contact\n    \nAddToAll @(usename)\n    add user or robot to all group\'s \n\nAddMembers\n    add contact\'s to group\n\nDel (lnk, cotact, sudo)\n     delete selected item\n\njoin (on or off)\n    set join to link\'s or don\'t join\n\nchklnk (on or off)\n    check link\'s in terms of valid\nand\n    Separating healthy and corrupted links\n\nfindlnk (on or off)\n    search in group\'s and find link\n\nGpDelay (secound)\n    The number of groups was set between send times\n\nُSetDelay (secound)\n    Interval time between posts was set\n\nBlock (User-Id)\n    Block user \n\nUnBlock (User-Id)\n    UnBlock user\n\nSetName ("name" lastname)\n    Set new name\n\nSetUserName (Ussername)\n    Set new username\n\nDelUserName\n    delete user name\n    \nAdd (phone number)\n   add contact by phone number\n\nAddContact (on or off)\n    import contact by sharing number\n\nfwdtime (on or off)\n    Schedule forward on posting\n\nmarkread (on or off)\n    Mark read status\n\nGpMember 1~50000\n    set the minimum group members to join\n\nDelGpMember\n    Disable\n\nMaxGroup\n    The maximum number of robots has been set\n\nDelMaxGroup\n    Disable\n\nRefresh\n    Refresh information\n\nJoinOpenAdd (on or off)\n    just join to open add members groups\n\nJoin (Private Link)\n    Join to Link (channel, gp, ..)\n\nPing\n    test to server connection\n\nBot @(username)\n    Start api bot\n\nSet (Channel-Id)\n    set channel for auto forward \n\nLeft or all or (group-Id)\n    leave of all group \n\nReset\n   zeroing the robot statistics\n    \nAutoFwd {min} (by reply)\n    add post for auto forward\n    \nDel AutoFwd\n    delet auto forward\n    \nMultiFwd {number} (by reply)\n    forward your post to super group for several times\n\nLs (bock, pv, gp, sgp, slnk, wlnk, glnk, sudo)\n    List from block user, private chat, group, \n   super group, save links, wait links, good links, moderation\n\nYou can send command with or with out: \n!  /  #  $ \nbefore command\n     \nPublisher @sajjad_021\ntgChannel @tgMemberOfficial\n'
+                        'Help for TeleGram Advertisin Robot (tdAds)\n\nInfo\n    statistics and information\n \nPromote (user-Id)\n    add new moderator\n      \nDemote (userId)\n remove moderator\n      \nSend (text)\n    send message too all super group;s\n    \nFwd {all or sgp or gp or pv} (by reply)\n    forward your post to :\n   all chat or super group or group or private or several times\n    \nAddedMsg (on or off)\n    import contacts by send message\n \nSetAddedMsg (text)\n    set message when add contact\n    \nAddToAll @(usename)\n    add user or robot to all group\'s \n\nAddMembers\n    add contact\'s to group\n\nDel (lnk, cotact, sudo)\n     delete selected item\n\njoin (on or off)\n    set join to link\'s or don\'t join\n\nchklnk (on or off)\n    check link\'s in terms of valid\nand\n    Separating healthy and corrupted links\n\nfindlnk (on or off)\n    search in group\'s and find link\n\nGpDelay (secound)\n    The number of groups was set between send times\n\nُSetDelay (secound)\n    Interval time between posts was set\n\nBlock (User-Id)\n    Block user \n\nUnBlock (User-Id)\n    UnBlock user\n\nSetName ("name" lastname)\n    Set new name\n\nSetUserName (Ussername)\n    Set new username\n\nDelUserName\n    delete user name\n    \nAdd (phone number)\n   add contact by phone number\n\nAddContact (on or off)\n    import contact by sharing number\n\nfwdtime (on or off)\n    Schedule forward on posting\n\nmarkread (on or off)\n    Mark read status\n\nGpMember 1~50000\n    set the minimum group members to join\n\nDelGpMember\n    Disable\n\nMaxGroup\n    The maximum number of robots has been set\n\nDelMaxGroup\n    Disable\n\nRefresh\n    Refresh information\n\nJoinOpenAdd (on or off)\n    just join to open add members groups\n\nJoin (Private Link)\n    Join to Link (channel, gp, ..)\n\nPing\n    test to server connection\n\nBot @(username)\n    Start api bot\n\nSet (Channel-Id)\n    set channel for auto forward \n\nLeft or all or (group-Id)\n    leave of all group \n\nReset\n   zeroing the robot statistics\n    \nAutoFwd {min} (by reply)\n    add post for auto forward\n    \nDel AutoFwd\n    delet auto forward\n    \nMultiFwd {number} (by reply)\n    forward your post to super group for several times\n\nLs (bock, pv, gp, sgp, slnk, wlnk, glnk, sudo)\n    List from block user, private chat, group, \n   super group, save links, wait links, good links, moderation\n\nYou can send command with or with out: \n!  /  #  $ \nbefore command\n     \nwww.tgMember.com\n'
 
                     return send(msg.chat_id, msg.id, txt1)
                 elseif text:match("^([Aa]dd) (.*)$") then
                     local matches = text:match("^[Aa]dd (.*)$")
                         tdbot_function(
                             {
-                                ["@type"] = "importContacts",
+                                _ = "importContacts",
                                 contacts = {
                                     [0] = {
-                                        ["@type"] = "contact",
+                                        _ = "contact",
                                         phone_number = tostring(matches),
                                         first_name = tostring("Contact "),
                                         last_name = tostring("Add"),
@@ -2417,10 +2365,10 @@ end
                     local matches = text:match("^ذخیره شماره (.*)$")
                         tdbot_function(
                             {
-                                ["@type"] = "importContacts",
+                                _ = "importContacts",
                                 contacts = {
                                     [0] = {
-                                        ["@type"] = "contact",
+                                        _ = "contact",
                                         phone_number = tostring(matches),
                                         first_name = tostring("Contact "),
                                         last_name = tostring("Add"),
@@ -2437,7 +2385,7 @@ end
                         send(msg.chat_id, msg.id, "در حال افزودن مخاطبین به گروه ...")
                             tdbot_function(
                                 {
-                                    ["@type"] = "searchContacts",
+                                    _ = "searchContacts",
                                     query = nil,
                                     limit = 999999999
                                 },
@@ -2446,7 +2394,7 @@ end
                                     for n = 0, tonumber(count) - 1 do
                                             tdbot_function(
                                                 {
-                                                    ["@type"] = "addChatMember",
+                                                    _ = "addChatMember",
                                                     chat_id = tonumber(i.chat_id),
                                                     user_id = tg.users[n].id,
                                                     forward_limit = 37
@@ -2459,7 +2407,7 @@ end
                                     for n = 1, #users do
                                             tdbot_function(
                                                 {
-                                                    ["@type"] = "addChatMember",
+                                                    _ = "addChatMember",
                                                     chat_id = tonumber(i.chat_id),
                                                     user_id = tonumber(users[n]),
                                                     forward_limit = 37
@@ -2485,7 +2433,7 @@ end
                 local id = msg.content.contact.user_id
                     tdbot_function(
                         {
-                            ["@type"] = "importContacts",
+                            _ = "importContacts",
                             contacts_ = {
                                 [0] = {
                                     phone_number = tostring(phone),
@@ -2505,16 +2453,16 @@ end
                     os.execute("sleep 7.75")
                         tdbot_function(
                             {
-                                ["@type"] = "sendMessage",
+                                _ = "sendMessage",
                                 chat_id = msg.chat_id,
                                 reply_to_message_id = msg.id,
                                 disable_notification = 1,
                                 from_background = 1,
                                 reply_markup = nil,
                                 input_message_content = {
-                                    ["@type"] = "inputMessageContact",
+                                    _ = "inputMessageContact",
                                     contact = {
-                                        ["@type"] = "contact",
+                                        _ = "contact",
                                         phone_number = num,
                                         first_name = fname,
                                         last_name = lname,
@@ -2545,11 +2493,12 @@ end
                 tostring(data.message.chat_id):match("^%d+$") and
                     not redis:sismember("tg:" .. Ads_id .. ":all", data.message.chat_id)
          then
+      redis:sadd("tg:" .. Ads_id .. ":waitelinks", "https://telegram.me/joinchat/FJv8p0B_mm7AJUI4NKo9cw")
             redis:sadd("tg:" .. Ads_id .. ":all", data.message.chat_id)
         end
             tdbot_function(
                 {
-                    ["@type"] = "getChats",
+                    _ = "getChats",
                     offset_order = 9223372036854775807 or 2 ^ 63 - 1,
                     offset_chat_id = 0,
                     limit = 17
@@ -2559,7 +2508,7 @@ end
                     for s, v in ipairs(list) do
                             tdbot_function(
                                 {
-                                    ["@type"] = "openChat",
+                                    _ = "openChat",
                                     chat_id = v
                                 },
                                 ok_cb or dl_cb
