@@ -57,7 +57,16 @@ if [[ ! -f $cfg ]]; then
 echo 'default_profile = "td-'$1'";
 td-'$1' = {
 	config_directory = "td-'$1'";
-  	logname = "log.txt";
+	test = false;
+	respond_to_misc = true;
+	max_copypasta_length = 300;
+	debug = true;
+	use_file_db = false;
+	use_file_gc = true;
+	use_secret_chats = true;
+	use_chat_info_db = false;
+	use_message_db = false;
+	verbosity = 0;	
 	lua_script = "td.lua";
 };' >> $cfg
 fi
