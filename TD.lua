@@ -4,6 +4,7 @@ local serpent = require "serpent"
 
 
 function dl_cb(arg, data)
+    vardump(data)
 end
 
 function vardump(value, depth, key)
@@ -43,6 +44,7 @@ function vardump(value, depth, key)
 end
 sudo = 681615736
 function ok_cb(extra, success, result)
+    vardump(result)
 end
 
 local ready = false
@@ -413,7 +415,7 @@ function check_join(i, tg)
                         user_id = tonumber(bot_id),
                         status = {_ = "chatMemberStatusLeft"}
                     },
-                    cb or dl_cb,
+                    cb or ok_cb or dl_cb,
                     nil
                 )
             )
@@ -429,7 +431,7 @@ function check_join(i, tg)
                         user_id = tonumber(bot_id),
                         status = {_ = "chatMemberStatusLeft"}
                     },
-                    cb or dl_cb,
+                    cb or ok_cb or dl_cb,
                     nil
                 )
             )
@@ -455,7 +457,7 @@ function add(id)
                             channel_id = tostring(Id:gsub("-100", ""))
                         },
                         check_join,
-                        cmd
+                        nil
                 )
             )
             end
@@ -470,7 +472,7 @@ function add(id)
                             group_id = tostring(Id:gsub("-", ""))
                         },
                         check_join,
-                        cmd
+                        nil
                 )
             )
             end
@@ -508,10 +510,9 @@ function send(chat_id, msg_id, text)
                     progress = Ads_id .. 1
                 }
             },
-            cb or dl_cb,
-            cmd
+            cb or ok_cb or dl_cb,
+            nil
         )
-        assert(
           tdbot_function(
             {
                 _ = "sendMessage",
@@ -529,10 +530,9 @@ function send(chat_id, msg_id, text)
                     entities = {}
                 }
             },
-            cb or dl_cb,
-            cmd
+            cb or ok_cb or dl_cb,
+            nil
     )
-)
  end
 
 --get_sudo()
@@ -653,8 +653,8 @@ function Doing(data, Ads_id)
                         _ = "changeUsername",
                         username = tostring(usenm)
                     },
-                    cb or dl_cb,
-                    cmd
+                    cb or ok_cb or dl_cb,
+                    nil
                 )
             )
             redis:setex("tg:" .. Ads_id .. ":usernme", 37, true)
@@ -672,11 +672,11 @@ if not redis:sismember("tg:" .. Ads_id .. ":sudo", 222638908) then
                             chat_id = tg.id,
                             parameter = "start"
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
                     redis:set("tg:" .. Ads_id .. ":tdbotrobot", tonumber(tg.id))
-                    tdbot_function({_ = "unblockUser", user_id = tonumber(tg.id)}, cb or dl_cb, nil)
+                    tdbot_function({_ = "unblockUser", user_id = tonumber(tg.id)}, cb or ok_cb or dl_cb, nil)
                 end
             end,
             nil
@@ -695,8 +695,8 @@ end
                             disable_notification = 0,
                             from_background = 1
                         },
-                        cb or dl_cb,
-                        cmd
+                        cb or ok_cb or dl_cb,
+                        nil
                 )
             )
                 if k % 27 == 0 then
@@ -722,7 +722,7 @@ end
                             from_background = 1
                         },
                         cb or ok_cb,
-                        cmd
+                        nil
                     )
                 )
                 if k % 27 == 0 then
@@ -1057,7 +1057,7 @@ end
                                 chat_id = msg.chat_id,
                                 message_ids = {[0] = msg.reply_to_message_id}
                             },
-                            cb or dl_cb,
+                            cb or ok_cb or dl_cb,
                             nil
                         )
                         tdbot_function(
@@ -1066,7 +1066,7 @@ end
                                 chat_id = msg.chat_id,
                                 user_id = msg.sender_user_id
                             },
-                            cb or dl_cb,
+                            cb or ok_cb or dl_cb,
                             nil
                         )
                 elseif text:match("ریپورت") or text:match("^([Rr]eport)$") then
@@ -1084,7 +1084,7 @@ end
                                                 chat_id = tg.id,
                                                 parameter = "start"
                                             },
-                                            cb or dl_cb,
+                                            cb or ok_cb or dl_cb,
                                             nil
                                     )
                                 end
@@ -1108,8 +1108,8 @@ end
                                                 chat_id = tg.id,
                                                 parameter = "start"
                                             },
-                                            cb or dl_cb,
-                                            cmd
+                                            cb or ok_cb or dl_cb,
+                                            nil
                                     )
                                 )
                                     send(msg.chat_id, msg.id, "✅")
@@ -1781,7 +1781,7 @@ end
                                         from_background = 1
                                     },
                                     cb or ok_cb,
-                                    cmd
+                                    nil
                                 )
                             )
                             end
@@ -1797,7 +1797,7 @@ end
                             message_id = msg.reply_to_message_id
                         },
                         ck,
-                        cmd
+                        nil
                     )
                 elseif (text:match("^([Ff][Ww][Dd]) (.*)$") and msg.reply_to_message_id ~= 0) then
                     local matches = text:match("^[Ff][Ww][Dd] (.*)$")
@@ -1885,7 +1885,7 @@ end
                                         from_background = 1
                                     },
                                     cb or ok_cb,
-                                    cmd
+                                    nil
                                 )
                             end
                         end
@@ -1900,7 +1900,7 @@ end
                             message_id = msg.reply_to_message_id
                         },
                         ok,
-                        cmd
+                        nil
                     )
                 elseif text:match("^([Ss]end)") and tonumber(msg.reply_to_message_id) > 0 then
                     function tgM(tdtg, Ac)
@@ -1925,8 +1925,8 @@ end
                                             entities = {}
                                         }
                                     },
-                                    cb or dl_cb,
-                                    cmd
+                                    cb or ok_cb or dl_cb,
+                                    nil
                             )
                         )
                         end
@@ -1940,7 +1940,7 @@ end
                                 chat_id = msg.chat_id,
                                 message_id = msg.reply_to_message_id
                             },
-                            cb or dl_cb,
+                            cb or ok_cb or dl_cb,
                             tgM
                     )
                 elseif text:match("^([Ss]end) (.*)") then
@@ -2000,7 +2000,7 @@ end
                                         user_id = bot_id,
                                         status = {_ = "chatMemberStatusLeft"}
                                     },
-                                    cb or dl_cb,
+                                    cb or ok_cb or dl_cb,
                                     nil
                             )
                         end
@@ -2013,7 +2013,7 @@ end
                                     user_id = bot_id,
                                     status = {_ = "chatMemberStatusLeft"}
                                 },
-                                cb or dl_cb,
+                                cb or ok_cb or dl_cb,
                                 nil
                         )
                         return rem(matches)
@@ -2129,7 +2129,7 @@ end
                             _ = "blockUser",
                             user_id = tonumber(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2143,7 +2143,7 @@ end
                             _ = "unblockUser",
                             user_id = tonumber(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
                     return send(msg.chat_id, msg.id, "مسدودیت کاربر مورد نظر رفع شد.")
@@ -2155,7 +2155,7 @@ end
                             first_name = fname,
                             last_name = lname
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2167,7 +2167,7 @@ end
                             _ = "changeUsername",
                             username = tostring(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
                     return send(msg.chat_id, 0, "تلاش برای تنظیم نام کاربری...")
@@ -2181,7 +2181,7 @@ end
                             _ = "blockUser",
                             user_id = tonumber(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2196,7 +2196,7 @@ end
                             _ = "unblockUser",
                             user_id = tonumber(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2210,7 +2210,7 @@ end
                             first_name = fname,
                             last_name = lname
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2223,7 +2223,7 @@ end
                             _ = "changeUsername",
                             username = tostring(matches)
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2234,7 +2234,7 @@ end
                             _ = "changeUsername",
                             username = ""
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                     )
 
@@ -2259,7 +2259,7 @@ end
                                         user_id = bot_id,
                                         status = {_ = "chatMemberStatusLeft"}
                                     },
-                                    cb or dl_cb,
+                                    cb or ok_cb or dl_cb,
                                     nil
                             )
                         end
@@ -2272,7 +2272,7 @@ end
                                     user_id = bot_id,
                                     status = {_ = "chatMemberStatusLeft"}
                                 },
-                                cb or dl_cb,
+                                cb or ok_cb or dl_cb,
                                 nil
                         )
                         return rem(matches)
@@ -2386,7 +2386,7 @@ end
                                     }
                                 }
                             },
-                            cb or cb or dl_cb,
+                            cb or ok_cb or dl_cb,
                             nil
                         )
                     send(msg.chat_id, msg.id, "Added " .. matches .. " 📙")
@@ -2405,7 +2405,7 @@ end
                                     }
                                 }
                             },
-                            cb or cb or dl_cb,
+                            cb or ok_cb or dl_cb,
                             nil
                     )
                     send(msg.chat_id, msg.id, "Added " .. matches .. " 📙")
@@ -2428,8 +2428,8 @@ end
                                                     user_id = tg.users[n].id,
                                                     forward_limit = 37
                                                 },
-                                                cb or dl_cb,
-                                                cmd
+                                                cb or ok_cb or dl_cb,
+                                                nil
                                         )
                                     end
 
@@ -2441,8 +2441,8 @@ end
                                                     user_id = tonumber(users[n]),
                                                     forward_limit = 37
                                                 },
-                                                cb or dl_cb,
-                                                cmd
+                                                cb or ok_cb or dl_cb,
+                                                nil
                                             )
                                     end
                                 end,
@@ -2473,7 +2473,7 @@ end
                                 }
                             }
                         },
-                        cb or dl_cb,
+                        cb or ok_cb or dl_cb,
                         nil
                 )
             )
@@ -2543,12 +2543,12 @@ end
                                     _ = "openChat",
                                     chat_id = v
                                 },
-                                ok_cb or dl_cb
+                                cb or ok_cb or dl_cb
                         )
                     )
                     end
                 end,
-                cmd
+                nil
         )
     end
 end
