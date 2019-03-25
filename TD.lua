@@ -512,17 +512,16 @@ end
 
 
 function find_link(text)
-    if
-        text:match("https://telegram.me/joinchat/%S+") or text:match("https://telegram.dog/joinchat/%S+") or
-            text:match("https://tlgrm.me/joinchat/%S+") or
-            text:match("https://telesco.pe/joinchat/%S+") or
-            text:match("https://t.me/joinchat/%S+")
-     then
+    if text:match("https://telegram.me/%S+") or text:match("https://telegram.dog/%S+") or
+                text:match("https://tlgrm.me/%S+") or
+                text:match("https://telesco.pe/%S+") or
+                text:match("https://t.me/%S+")
+         then
         local text = text:gsub("t.me", "telegram.me")
         local text = text:gsub("telesco.pe", "telegram.me")
         local text = text:gsub("telegram.dog", "telegram.me")
         local text = text:gsub("tlgrm.me", "telegram.me")
-        for link in text:gmatch("(https://telegram.me/joinchat/%S+)") do
+            for link in text:gmatch("(https://telegram.me/%S+)") do
             if not redis:sismember("tg:" .. Ads_id .. ":alllinks", link) then
                 redis:sadd("tg:" .. Ads_id .. ":waitelinks", link)
                 redis:sadd("tg:" .. Ads_id .. ":alllinks", link)
