@@ -14,7 +14,7 @@
 [![GitHub license](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://raw.githubusercontent.com/tgMember/tgAds/master/LICENSE)
 
 [![https://github.com/tgMember/tgAds](https://img.shields.io/badge/%F0%9F%92%AC_GitHub-tdAds-lightgrey.svg)](https://github.com/tgMember/tdAds)
-[![http://t.me/sajjad_021](https://img.shields.io/badge/Telegram-sajjad__021-blue.svg)](http://t.me/sajjad_021)
+[![http://admin.tgmember.com](https://img.shields.io/badge/Telegram-sajjad__021-blue.svg)](http://t.me/sajjad_021)
    [![https://www.tgmember.com](https://img.shields.io/badge/webpage-tgMember-ff69b4.svg)](https://www.tgmember.com)
 
 [![GitHub forks](https://img.shields.io/github/forks/tgMember/tdAds.svg?style=plastic)](https://github.com/tgMember/tdAds/network)
@@ -22,6 +22,14 @@
 
 
 ***
+
+
+'''git clone https://github.com/tgMember/tdAds.git && cd tdAds && bash TD'''
+
+'''bash TD 1'''
+
+for new bot change number to upper
+
 
 ## Installation guide
 
@@ -31,3 +39,7 @@
  ## راهنمای نصب
  
 [![https://github.com/tgMember/tdAds/wiki/%D9%81%D8%A7%D8%B1%D8%B3%DB%8C](https://img.shields.io/badge/Language-Farsi-brightgreen.svg?style=for-the-badge)](https://github.com/tgMember/tdAds/wiki/%D9%81%D8%A7%D8%B1%D8%B3%DB%8C)
+
+
+
+Sajjad Taheri
