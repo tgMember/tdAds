@@ -1,5 +1,5 @@
 # [_TeleGram Advertising_](https://www.tgmember.com)
-
+##### Telegram Bulk Message Sender
 #### _New Telegram_ [*(tdbot)*](https://valtman.name/telegram-bot)
 
 #### _Cli & Api_
@@ -24,9 +24,9 @@
 ***
 
 
-'''git clone https://github.com/tgMember/tdAds.git && cd tdAds && bash TD'''
+```git clone https://github.com/tgMember/tdAds.git && cd tdAds && bash TD```
 
-'''bash TD 1'''
+```bash TD 1```
 
 for new bot change number to upper
 
