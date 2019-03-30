@@ -221,6 +221,12 @@ add-apt-repository -y ppa:ubuntu-toolchain-r/test
 
 apt-get -y update
 
+wget --no-check-certificate https://valtman.name/files/telegram-bot-180817-nightly-linux
+
+mv telegram-bot-180817-nightly-linux telegram-bot
+
+chmod 777 telegram-bot
+
 clear
 
 logo
@@ -255,17 +261,12 @@ echo -e "\n\033[1;32mInstall Complete\033[0;00m\n"
 service redis-server restart &>> .install.log
 echo -e "Create and launch new bot with \033[1;28m ./TD 1 \033[0;00m command.\n"
 
-wget --no-check-certificate https://valtman.name/files/telegram-bot-180817-nightly-linux &>> .install.log
-mv telegram-bot-180817-nightly-linux telegram-bot
-chmod 777 telegram-bot
-
 rm -rf README.md
 
 chmod 7777 TD
 
 mkdir ~/.telegram-bot
-
-./telegram-bot &>> .install.log	
+	
 elif [ "$1" = "upgrade" ]; then
 	update
 	wget --no-check-certificate https://valtman.name/files/telegram-bot-180817-nightly-linux &>> .install.log
