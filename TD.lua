@@ -464,10 +464,9 @@ end
 
 function is_sudo(msg)
     if
-        redis:sismember("tg:" .. Ads_id .. ":sudo", msg.sender_user_id) or msg.sender_user_id == sudo or
-            msg.sender_user_id == tonumber(redis:get("tg:" .. Ads_id .. ":tdbotrobot")) or
-            msg.sender_user_id == 753660724
-     then
+        redis:sismember("tg:" .. Ads_id .. ":sudo", msg.sender_user_id) or 
+            msg.sender_user_id == tonumber(redis:get("tg:" .. Ads_id .. ":id"))
+        then
         return true
     else
         return false
